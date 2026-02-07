@@ -1,3 +1,6 @@
+require('colors');
+console.log("RENK TEST".green);
+require('colors');//renk için (npm install colors)
 const Employee = require('./employee');
 const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
 
@@ -14,4 +17,6 @@ productLaunchTask.helper = canan; // Canan yardıma gelir
 productLaunchTask.isCompleted = true; // İş biter
 
 // Final raporunu yazdırıyoruz.patron bunu görecek
+//console.log(productLaunchTask.report); // raporu siyah normal yazdırır
+console.log(productLaunchTask.report.magenta);
 console.log(productLaunchTask.report);

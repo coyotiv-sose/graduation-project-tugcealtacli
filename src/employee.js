@@ -16,5 +16,4 @@ class Employee {
 }
 
 module.exports = Employee;
-//emploee.js dosyasında bir kural kitabı yazdık. ama index.js bu kuralları bilemez. bu yüzden module.exports ile Employee sınıfını dışarıya açtık. index.js dosyasında bu sınıfı kullanarak çalışanlarımızı oluşturacağız.zmasaık departmanlar arası iletişim kopukluğu olmuş olurdu.
-//
+//employee.js dosyasında bir kural kitabı yazdık
