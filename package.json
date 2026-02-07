@@ -21,6 +21,7 @@
 		"prettier": "^2.7.1"
 	},
 	"dependencies": {
-		"colors": "^1.4.0"
+		"colors": "^1.4.0",
+		"pluralize": "^8.0.0"
 	}
 }

@@ -1,3 +1,4 @@
+const pluralize = require('pluralize');//çoğul yapma işlemi için (npm install pluralize yazdık terminale)
 require('colors');
 console.log("RENK TEST".green);
 require('colors');//renk için (npm install colors)
@@ -18,5 +19,9 @@ productLaunchTask.isCompleted = true; // İş biter
 
 // Final raporunu yazdırıyoruz.patron bunu görecek
 //console.log(productLaunchTask.report); // raporu siyah normal yazdırır
-console.log(productLaunchTask.report.magenta);
-console.log(productLaunchTask.report);
+const count = productLaunchTask.assignees.length;
+const employeeText = pluralize('employee', count, true);
+//console.log(`${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);--> burada sadece son satır renkli olur!!
+//console.log(productLaunchTask.report.magenta);-->pluralize kütüphanesini eklemeden önce, yine raporun tamamı renkliyken.
+console.log(`${productLaunchTask.report}\n${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);//böyle yapınca tüm rapor renkli oldu.
+//console.log(productLaunchTask.report);-->normal rapor yazdırır, renkli değil.
