@@ -1,6 +1,6 @@
-const pluralize = require('pluralize');//çoğul yapma işlemi için (npm install pluralize yazdık terminale)
-require('colors');
-console.log("RENK TEST".green);
+const TaskReporter = require('./task-reporter'); // TaskReporter sınıfını kendi dosyasından çağırıyoruz burda.
+
+console.log("RENK TEST".green);//denemee
 require('colors');//renk için (npm install colors)
 const Employee = require('./employee');
 const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
@@ -20,8 +20,9 @@ productLaunchTask.isCompleted = true; // İş biter
 // Final raporunu yazdırıyoruz.patron bunu görecek
 //console.log(productLaunchTask.report); // raporu siyah normal yazdırır
 const count = productLaunchTask.assignees.length;
-const employeeText = pluralize('employee', count, true);
+//const employeeText = pluralize('employee', count, true);
 //console.log(`${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);--> burada sadece son satır renkli olur!!
 //console.log(productLaunchTask.report.magenta);-->pluralize kütüphanesini eklemeden önce, yine raporun tamamı renkliyken.
-console.log(`${productLaunchTask.report}\n${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);//böyle yapınca tüm rapor renkli oldu.
+//console.log(`${productLaunchTask.report}\n${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);//böyle yapınca tüm rapor renkli oldu.
 //console.log(productLaunchTask.report);-->normal rapor yazdırır, renkli değil.
+TaskReporter.printFullReport(productLaunchTask);//task-reporter.js dosyasındaki printFullReport fonksiyonunu çağırıp raporu renkli bir şekilde yazrırıyoruz
