@@ -1,0 +1,20 @@
+@startuml
+title Tuvia Projesi Sınıf Diyagramı
+
+class Employee {
+  +name: String
+  +position: String
+}
+
+class Task {
+  +title: String
+  +get report(): String
+}
+
+class TaskReporter {
+  {static} +printFullReport(task: Task)
+}
+
+Task "1" -- "0..*" Employee : assignees
+TaskReporter ..> Task : reports
+@enduml
