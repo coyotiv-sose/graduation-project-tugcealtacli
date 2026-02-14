@@ -6,6 +6,7 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "node ./bin/www",
+
 		"dev": "nodemon ./bin/www",
 		"eslint:check": "npx eslint .",
 		"eslint:fix": "npx eslint --fix .",
