@@ -4,5 +4,16 @@ body {
 }
 
 a {
-  color: #00B7FF;
+  color: #f08aca;
+}
+#users{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.user {
+  margin: 10px 0;
+  padding: 5px;
+  border: 1px solid #eee;
+  border-radius: 5px;
 }

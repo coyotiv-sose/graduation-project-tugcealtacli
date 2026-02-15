@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1 Tuvia users list
+  p welcome to #{user.name}
+  h2 Users
+  ul
+    each user in users
+      li= user.name
+      //li = {user.name}
+//ul#users dersen bu id olur
+//ul.users dersen bu class olur
