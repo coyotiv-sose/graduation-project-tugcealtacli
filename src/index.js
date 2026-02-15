@@ -1,10 +1,17 @@
-const TaskReporter = require('./task-reporter'); // TaskReporter sınıfını kendi dosyasından çağırıyoruz burda.
+/*const TaskReporter = require('./task-reporter'); // TaskReporter sınıfını kendi dosyasından çağırıyoruz burda.
 
 console.log("RENK TEST".green);//denemee
 require('colors');//renk için (npm install colors)
 const Employee = require('./employee');
 const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
+*/
 
+const { default: axios } = require("axios")
+
+//axios ile kullanıcıları getiririz.
+axios.get('http://localhost:3000/users').then(response => {
+console.log(response.data);
+/*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
 const mehmet = new Employee('Mehmet', 'Excel', 40);
@@ -26,3 +33,4 @@ const count = productLaunchTask.assignees.length;
 //console.log(`${productLaunchTask.report}\n${productLaunchTask.title} projesinde ${employeeText} çalışıyor.`.magenta);//böyle yapınca tüm rapor renkli oldu.
 //console.log(productLaunchTask.report);-->normal rapor yazdırır, renkli değil.
 TaskReporter.printFullReport(productLaunchTask);//task-reporter.js dosyasındaki printFullReport fonksiyonunu çağırıp raporu renkli bir şekilde yazrırıyoruz
+*/

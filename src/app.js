@@ -10,7 +10,7 @@ const TaskReporter = require('./task-reporter');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const tuviaRouter = require('./routes/tuvia');//tuvia.js dosyasını da dahil ediyoruz
+const tuviaRouter = require('./routes/tuvia');//tuvia.js dosyasını da dahil ediyoruz.
 
 const app = express();
 
