@@ -1,4 +1,5 @@
 var express = require('express');
+const User = require('../user')
 var router = express.Router();
 
 /* GET users listing. */
@@ -14,5 +15,10 @@ router.get('/', function(req, res, next) {
   ]
   });
 });
+// creste new user
+router.post('/',function (req, res, next){
+  const user = new User
+  res.send(user)
+})
 
 module.exports = router;
