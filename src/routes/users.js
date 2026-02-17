@@ -1,24 +1,26 @@
+
 var express = require('express');
-const User = require('../user')
 var router = express.Router();
+const Employee = require('../employee'); // Sınıfı çağırdık
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send([{ name: 'Canan' },{ name: 'Mehmet' },{ name: 'Ahmet' }]);
-  return;
-  res.render('employees', {
-    user: {
-      name: 'Canan',
-    },
-  employees: [
-    { name: 'Canan' },{ name: 'Mehmet' },{ name: 'Ahmet' }
-  ]
-  });
+  // Hocanın istediği yöntem: Listeyi direkt gönderiyoruz
+  res.send(Employee.list);
 });
-// create new employee
-router.post('/',function (req, res, next){
-  const employee = new Employee(req.body.name);
-  res.send(employee)
-})
-static
+
+/* POST create new employee. */
+router.post('/', function(req, res, next) {
+  // req.body zaten { name: 'Canan', mainSkill: 'Excel' ... } şeklinde bir objedir.
+
+  try {
+    const employee = Employee.create(req.body);
+    res.send(employee);
+  } catch (error) {
+    // Eğer bir terslik olursa sunucu çökmesin diye
+    console.error("Kayıt hatası:", error);
+    res.status(400).send("Kayıt oluşturulurken hata oluştu.");
+  }
+});
+
 module.exports = router;

@@ -2,9 +2,11 @@
 
 console.log("RENK TEST".green);//denemee
 require('colors');//renk için (npm install colors)
-const Employee = require('./employee');
-const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
 */
+const axios = require('axios');//axios kütüphanesini ekledik (npm install axios)
+const Employee = require('./employee');
+//const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
+
 //fetch users with axios
 //axios.get('http://localhost:4000/users').then(response => {
   //  console.log(response.data)
