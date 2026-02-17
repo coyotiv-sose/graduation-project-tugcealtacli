@@ -1,5 +1,5 @@
 /*const TaskReporter = require('./task-reporter'); // TaskReporter sınıfını kendi dosyasından çağırıyoruz burda.
-
+architecture
 console.log("RENK TEST".green);//denemee
 require('colors');//renk için (npm install colors)
 */
@@ -7,28 +7,30 @@ const axios = require('axios');//axios kütüphanesini ekledik (npm install axio
 const Employee = require('./employee');
 //const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
 
-//fetch users with axios
-//axios.get('http://localhost:4000/users').then(response => {
+//fetch employees with axios
+//axios.get('http://localhost:4000/employees').then(response => {
   //  console.log(response.data)
 //})
 
 //const { default: axios } = require("axios")
-//axios ile kullanıcıları getiririz.
+//axios ile çalışanları getiririz.
 async function main(){
-const canan = await axios.post('http://localhost:4000/users',{
+const canan = await axios.post('http://localhost:4000/employees',{
   name: 'Canan',
 })
 // .then(response => {
   console.log(canan.data)
 }
-const mehmet = await axios.post('http://localhost:4000/users',{
+const mehmet = await axios.post('http://localhost:4000/employees',{
   name: 'Mehmet',
 })
 console.log(canan.data)
 console.log(mehmet.data)
-const allEmployees = await axios.get('http://localhost:4000/users')
+const allEmployees = await axios.get('http://localhost:4000/employees')
 
 console.log('List of all employees:', allEmployees.data)
+
+main();
   /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);

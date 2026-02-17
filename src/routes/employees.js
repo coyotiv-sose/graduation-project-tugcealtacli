@@ -1,9 +1,8 @@
-
 var express = require('express');
 var router = express.Router();
 const Employee = require('../employee'); // Sınıfı çağırdık
 
-/* GET users listing. */
+/* GET employees listing. */
 router.get('/', function(req, res, next) {
   // Hocanın istediği yöntem: Listeyi direkt gönderiyoruz
   res.send(Employee.list);
@@ -11,7 +10,7 @@ router.get('/', function(req, res, next) {
 
 /* POST create new employee. */
 router.post('/', function(req, res, next) {
-  // req.body zaten { name: 'Canan', mainSkill: 'Excel' ... } şeklinde bir objedir.
+
 
   try {
     const employee = Employee.create(req.body);

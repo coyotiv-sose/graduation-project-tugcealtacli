@@ -1,12 +1,44 @@
 var express = require('express');
 var router = express.Router();
+const Employee = require('../employee');
+const Task = require('../task');
 
-/* GET home page. */
 router.get('/', function(req, res, next) {
- // res.render('index', { title: 'Tuvia' });
- res.send([{ id: 1, name: 'Tuvia' }])
- //Res.render ve res.send arasındaki fark nedir? = res.render, bir şablon dosyasını (genellikle Pug, EJS gibi) kullanarak HTML oluşturur ve bunu istemciye gönderir. res.send ise doğrudan bir metin, JSON veya diğer veri türlerini istemciye gönderir. Yani res.render, dinamik HTML oluşturmak için kullanılırken, res.send daha genel amaçlıdır ve herhangi bir veri türünü göndermek için kullanılabilir.
+
+  Employee.list = [];
+
+  const canan = Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 });
+  const mehmet = Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 });
+
+  const zorGorev = new Task('Bütçe Analizi', 'Excel', 4);
+//mehmet denesin ama başarısız olsun cünkü seviyesi yetersiz
+  let mehmetSonuc = "Mehmet denedi: ";
+  if (mehmet.canHandle(zorGorev)) {
+     zorGorev.assignTo(mehmet);
+     mehmetSonuc += "Başarılı!";
+  } else {
+     mehmetSonuc += "Başarısız (Yetersiz Seviye)";
+  }
+//sonra canana deniyor ve basarılı oluyor cünkü seviyesi yeterli
+  if (canan.canHandle(zorGorev)) {
+    zorGorev.assignees.push(canan);
+//görev bitsin.
+    canan.completeTask(zorGorev);
+    zorGorev.isCompleted = true;
+  }
+
+//Yardım kısmı
+  zorGorev.helper = canan;
+  canan.helpPeer(mehmet);
+
+  res.send(`
+    <h1>TUVIA SİMÜLASYON RAPORU</h1>
+    <p><strong>Mehmet Durumu:</strong> ${mehmetSonuc}</p>
+    <pre>${zorGorev.report}</pre>
+    <hr>
+    <h3>Tüm Çalışanlar (JSON)</h3>
+    <pre>${JSON.stringify(Employee.list, null, 2)}</pre>
+  `);
 });
 
 module.exports = router;
-//router nedir? = express altında http isteklerini dinlemenize ve yanıt vermenize olanak tanıyan özel bir modüldür

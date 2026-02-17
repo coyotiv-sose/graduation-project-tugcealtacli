@@ -1,17 +1,17 @@
+const colors = require('colors'); // Renkler için bunu eklemelisin (npm install colors)
+
 class Employee {
-  //constructor, bir çalışanın adını, ana becerisini ve beceri seviyesini alır.
   constructor(name, mainSkill, skillLevel) {
     this.name = name;
-    //bu çalışanın adı
     this.mainSkill = mainSkill;
     this.skillLevel = skillLevel;
-    this.points = 0;
-    this.tasks = [];
-    //this demek "şu an elimdeki çalışanın..." demektir. puanını da sıfırdan başlatıyoruz
+    this.points = 0;      this.tasks = [];
   }
-  //tuvia vizyonu : risk minimizasyonu
+
+    // Tuvia Vizyonu: Risk Minimizasyonu
   canHandle(task) {
-    if(task.requiredSkill !== this.mainSkill) {
+    if (task.requiredSkill !== this.mainSkill) {
+      console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red);
       return false;
     }
     if(this.skillLevel < task.difficulty) {
@@ -22,24 +22,21 @@ class Employee {
   }
   completeTask(task) {
     this.points += 50;
-    console.log(`${this.name} görevi tamamladı ve 50 puan kazandı.`.green);
+    console.log(`✅ ${this.name} "${task.title}" görevini tamamladı: +50 Puan!`.green);
   }
-  helpPeer(peer){
-    this.points += 20;//yardım eden
-    peer.points += 5;//yardım alan
-    console.log(`${this.name} bir meslektaşına yardım etti ve 20 puan kazandı. Yardım alan meslektaş ${peer.name} ise 5 puan kazandı.`.cyan);
+  helpPeer(peer) {
+    this.points += 20; // Yardım eden
+    peer.points += 5;  // Yardım alan
+    console.log(`🤝 ${this.name}, ${peer.name} kişisine yardım etti. (+20 Puan)`.cyan);
   }
-    set updatePoints(value) {
-      throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!');
-    }
+  set updatePoints(value) {
+    throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!');
   }
-  static create ({name, mainSkill, skillLevel}){
+  static create({ name, mainSkill, skillLevel }) {
     const employee = new Employee(name, mainSkill, skillLevel);
     Employee.list.push(employee);
     return employee;
   }
-
-  Employee.list = [];
-
+}
+Employee.list = [];
 module.exports = Employee;
-//employee.js dosyasında bir kural kitabı yazdık

@@ -9,7 +9,7 @@ const Task = require('./task');
 const TaskReporter = require('./task-reporter');
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const employeesRouter = require('./routes/employees');
 //const tuviaRouter = require('./routes/tuvia');//tuvia.js dosyasını da dahil ediyoruz.
 
 const app = express();
@@ -31,6 +31,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/employees', employeesRouter);
 
 module.exports = app;
