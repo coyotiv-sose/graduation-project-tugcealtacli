@@ -9,18 +9,25 @@ const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
 //axios.get('http://localhost:4000/users').then(response => {
   //  console.log(response.data)
 //})
-const { default: axios } = require("axios")
 
+//const { default: axios } = require("axios")
 //axios ile kullanıcıları getiririz.
-axios
- .post('http://localhost:3000/users',{
+async function main(){
+const canan = await axios.post('http://localhost:4000/users',{
   name: 'Canan',
 })
- .then(response => {
-  console.log(response.data)
- })
+// .then(response => {
+  console.log(canan.data)
+}
+const mehmet = await axios.post('http://localhost:4000/users',{
+  name: 'Mehmet',
+})
+console.log(canan.data)
+console.log(mehmet.data)
+const allEmployees = await axios.get('http://localhost:4000/users')
 
-/*
+console.log('List of all employees:', allEmployees.data)
+  /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
 const mehmet = new Employee('Mehmet', 'Excel', 40);

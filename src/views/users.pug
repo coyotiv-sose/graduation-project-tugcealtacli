@@ -1,12 +1,12 @@
 extends layout
 
 block content
-  h1 Tuvia users list
+  h1 Tuvia employees list
   p welcome to #{user.name}
-  h2 Users
+  h2 Employees
   ul
-    each user in users
-      li= user.name
-      //li = {user.name}
-//ul#users dersen bu id olur
-//ul.users dersen bu class olur
+    each employee in employees
+      li= employee.name
+      //li = {employee.name}
+//ul#employees dersen bu id olur
+//ul.employees dersen bu class olur

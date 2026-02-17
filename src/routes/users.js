@@ -6,19 +6,19 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   res.send([{ name: 'Canan' },{ name: 'Mehmet' },{ name: 'Ahmet' }]);
   return;
-  res.render('users', {
+  res.render('employees', {
     user: {
       name: 'Canan',
     },
-  users: [
+  employees: [
     { name: 'Canan' },{ name: 'Mehmet' },{ name: 'Ahmet' }
   ]
   });
 });
-// creste new user
+// create new employee
 router.post('/',function (req, res, next){
-  const user = new User
-  res.send(user)
+  const employee = new Employee(req.body.name);
+  res.send(employee)
 })
-
+static
 module.exports = router;
