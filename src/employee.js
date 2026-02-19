@@ -1,4 +1,5 @@
 const colors = require('colors'); // Renkler için bunu eklemelisin (npm install colors)
+const Task = require('./task')
 
 class Employee {
   constructor(name, mainSkill, skillLevel) {
@@ -7,6 +8,12 @@ class Employee {
     this.skillLevel = skillLevel;
     this.points = 0;
     this.tasks = [];
+    //çalışanın kendi görevlerini oluşturması ve kişisel listesine eklemesi için
+    createTask(title, requiredSkill, difficulty) {
+      const task = Task.create(title, requiredSkill, difficulty);
+      this.tasks.push(task);
+      return task;
+    }
   }
 
   // Tuvia Vizyonu: Risk Minimizasyonu

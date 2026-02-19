@@ -29,9 +29,9 @@ async function main() {
   const allEmployees = await axios.get('http://localhost:3000/employees');
 
   console.log('List of all employees:', allEmployees.data);
-
-  main();
 }
+main();
+
 /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
