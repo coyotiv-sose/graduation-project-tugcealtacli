@@ -39,5 +39,5 @@ router.post('/:name/tasks', function (req, res, next) {
     res.status(400).send('Görev oluşturulurken hata oluştu.')
   }
 })
-
+//router.post
 module.exports = router

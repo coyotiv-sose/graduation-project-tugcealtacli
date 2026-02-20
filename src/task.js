@@ -8,16 +8,19 @@ class Task {
     this.helper = null // Yardım eden gizli kahraman(henüz kimse yok(boş))
     this.isCompleted = false // İş bitti mi?-false=hayır bitmedi, true=evet bitti
     this.difficulty = difficulty // Görev zorluğu
+  }
     //tüm görevleri tutacak bir liste oluşturduk
+  static list = []
     static create({title, requiredSkill, difficulty}) {
       const task = new Task(title, requiredSkill, difficulty)
       Task.list.push(task)
       return task
     }
-  }
+}
   get report()
   {
-    // raporlama (getter) yapıyoruz,get metodu bir fonksiyon gibi değil, bir özellik gibi kullanılır. Bu rapor, görevin durumunu ve atanan ekip üyelerini gösterir.
+
+    //raporlama
     return `
 # Tuvia Görev Raporu: ${this.title}
 Zorluk    : ${this.difficulty}/5
@@ -27,7 +30,6 @@ ${this.helper ? `Destek    : ${this.helper.name} (+20 Puan)` : 'Destek    : -'}
 --------------------------
 `
   }
-}
 
 module.exports = Task // Bu sınıfı diğer dosyaların kullanımına açıyoruz
 // çıkış kapısı denebilir. task kalıbını paketler.
