@@ -3,13 +3,14 @@ const express = require('express');
 const router = express.Router();
 const Employee = require('../employee'); // Sınıfı çağırdık
 
-/* GET employees listing. */
+const Task = require('../task');
+
+/* GET tüm çalışanları listele. */
 router.get('/', function (req, res, next) {
-  // Hocanın istediği yöntem: Listeyi direkt gönderiyoruz
   res.send(Employee.list);
 });
 
-/* POST create new employee. */
+/* POST yeni çalışan oluştur */
 router.post('/', function (req, res, next) {
   try {
     const employee = Employee.create({
@@ -19,9 +20,23 @@ router.post('/', function (req, res, next) {
     });
     res.send(employee);
   } catch (error) {
-    // Eğer bir terslik olursa sunucu çökmesin diye
     console.error('Kayıt hatası:', error);
     res.status(400).send('Kayıt oluşturulurken hata oluştu.');
+  }
+});
+router.post('/:name/tasks', function (req, res, next) {
+  try {
+    const employee = Employee.list.find(emp => emp.name === req.params.name);
+    if (!employee) {
+      return res.status(404).send('Çalışan bulunamadı.');
+    }
+    const { title, requiredSkill, difficulty } = req.body;
+    const newTask = new Task(title, requiredSkill, difficulty);
+    employee.tasks.push(newTask);
+    res.status(201).send(newTask);
+  } catch (error) {
+    console.error('Görev oluşturma hatası:', error);
+    res.status(400).send('Görev oluşturulurken hata oluştu.');
   }
 });
 

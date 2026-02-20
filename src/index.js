@@ -2,56 +2,54 @@
 architecture
 console.log("RENK TEST".green);//denemee
 require('colors');//renk için (npm install colors)
+ const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
+ fetch employees with axios
+ axios.get('http://localhost:4000/employees').then(response => {
+  console.log(response.data)
+ })
+ const { default: axios } = require("axios")
+ axios ile çalışanları getiririz.
 */
-const axios = require('axios'); // axios kütüphanesini ekledik (npm install axios)
-const Employee = require('./employee');
-// const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
-// fetch employees with axios
-// axios.get('http://localhost:4000/employees').then(response => {
-//  console.log(response.data)
-// })
-// const { default: axios } = require("axios")
-// axios ile çalışanları getiririz.
+const axios = require('axios') // axios kütüphanesini ekledik (npm install axios)
+const Employee = require('./employee') // Employee sınıfını kendi dosyasından çağırdık
+
 async function main() {
   try {
-    const canan = await axios.post('http://localhost:3000/employees', {
-      name: 'Canan',
-    });
-    // .then(response => {
-    console.log(canan.data);
-
-    const mehmet = await axios.post('http://localhost:3000/employees', {
-      name: 'Mehmet',
-    });
-    console.log(canan.data);
-    console.log(mehmet.data);
-    const allEmployees = await axios.get('http://localhost:3000/employees');
-
-    console.log('List of all employees:', allEmployees.data);
+    console.log('Çalışanları oluşturuyoruz...')
+    await axios.post('http://localhost:3000/employees', { name: 'Canan' })
+    // console.log(canan.data);
+    await axios.post('http://localhost:3000/employees', { name: 'Mehmet' })
+    // console.log(mehmet.data);
+    // const allEmployees = await axios.get('http://localhost:3000/employees');
+    console.log('2. görevler direkt çalışanlara atanıyor..')
+    // console.log('List of all employees:', allEmployees.data);
     await axios.post('http://localhost:3000/employees/Canan/tasks', {
       title: 'Arayüz',
       requiredSkill: 'JS',
       difficulty: 'Orta',
-    });
+    })
     await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
       title: 'Backend',
       requiredSkill: 'Node.js',
       difficulty: 'Zor',
-    });
-    const newTask = await axios.get('http://localhost:3000/tasks', {
+    })
+    console.log('3. Sistemdeki güncel durum..\n')
+    const allEmployees = await axios.get('http://localhost:3000/employees')
+    console.log(JSON.stringify(allEmployees.data, null, 2)) // tüm çalışanları ve görevlerini güzel formatta yazdırır. 2 dediğimiz de 2 boşluk bırakarak yazdırır
+    /* const newTask = await axios.get('http://localhost:3000/tasks', {
       title: 'Bütçe Analizi',
       requiredSkill: 'Excel',
       difficulty: 'Zor',
     });
-    console.log('Yeni oluşturulan görev:', newTask.data);
-    const allTasks = await axios.get('http://localhost:3000/tasks');
-    console.log('Tüm görevlerin listesi:', allTasks.data);
+    console.log('Yeni oluşturulan görev:', newTask.data)
+    const allTasks = await axios.get('http://localhost:3000/tasks')
+    console.log('Tüm görevlerin listesi:', allTasks.data)
+  */
   } catch (error) {
-    console.error('Error occurred:', error.message);
+    console.error('Error occurred:', error.message)
   }
 }
-// hata yakalama
-main();
+main()
 /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
