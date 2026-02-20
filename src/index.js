@@ -6,15 +6,14 @@ require('colors');//renk için (npm install colors)
 const axios = require('axios'); // axios kütüphanesini ekledik (npm install axios)
 const Employee = require('./employee');
 // const Task = require('./task');//sınıfları kendi dosyalarından çağırdık
-
 // fetch employees with axios
 // axios.get('http://localhost:4000/employees').then(response => {
 //  console.log(response.data)
 // })
-
 // const { default: axios } = require("axios")
 // axios ile çalışanları getiririz.
 async function main() {
+  try {
   const canan = await axios.post('http://localhost:3000/employees', {
     name: 'Canan',
   });
@@ -29,9 +28,15 @@ async function main() {
   const allEmployees = await axios.get('http://localhost:3000/employees');
 
   console.log('List of all employees:', allEmployees.data);
-}
-main();
+  await axios.post('http://localhost:3000/employees/Canan/tasks', {title: 'Arayüz', requiredSkill: 'JS', difficulty: 'Orta'});
+  await axios.post('http://localhost:3000/employees/Mehmet/tasks', {title: 'Backend', requiredSkill: 'Node.js', difficulty: 'Zor'});
 
+}
+//hata yakalama
+}
+main().catch(error => {
+  console.error('Error occurred:', error);
+});
 /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
