@@ -14,36 +14,44 @@ const Employee = require('./employee');
 // axios ile çalışanları getiririz.
 async function main() {
   try {
-  const canan = await axios.post('http://localhost:3000/employees', {
-    name: 'Canan',
-  });
-  // .then(response => {
-  console.log(canan.data);
+    const canan = await axios.post('http://localhost:3000/employees', {
+      name: 'Canan',
+    });
+    // .then(response => {
+    console.log(canan.data);
 
-  const mehmet = await axios.post('http://localhost:3000/employees', {
-    name: 'Mehmet',
-  });
-  console.log(canan.data);
-  console.log(mehmet.data);
-  const allEmployees = await axios.get('http://localhost:3000/employees');
+    const mehmet = await axios.post('http://localhost:3000/employees', {
+      name: 'Mehmet',
+    });
+    console.log(canan.data);
+    console.log(mehmet.data);
+    const allEmployees = await axios.get('http://localhost:3000/employees');
 
-  console.log('List of all employees:', allEmployees.data);
-  await axios.post('http://localhost:3000/employees/Canan/tasks', {title: 'Arayüz', requiredSkill: 'JS', difficulty: 'Orta'});
-  await axios.post('http://localhost:3000/employees/Mehmet/tasks', {title: 'Backend', requiredSkill: 'Node.js', difficulty: 'Zor'});
-  const newTask = await axios.get('http://localhost:3000/tasks',{
-  title: 'Bütçe Analizi',
-  requiredSkill: 'Excel',
-  difficulty: 'Zor'
-});
-console.log( 'Yeni oluşturulan görev:', newTask.data);
-  const allTasks = await axios.get('http://localhost:3000/tasks');
-  console.log('Tüm görevlerin listesi:', allTasks.data);
+    console.log('List of all employees:', allEmployees.data);
+    await axios.post('http://localhost:3000/employees/Canan/tasks', {
+      title: 'Arayüz',
+      requiredSkill: 'JS',
+      difficulty: 'Orta',
+    });
+    await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
+      title: 'Backend',
+      requiredSkill: 'Node.js',
+      difficulty: 'Zor',
+    });
+    const newTask = await axios.get('http://localhost:3000/tasks', {
+      title: 'Bütçe Analizi',
+      requiredSkill: 'Excel',
+      difficulty: 'Zor',
+    });
+    console.log('Yeni oluşturulan görev:', newTask.data);
+    const allTasks = await axios.get('http://localhost:3000/tasks');
+    console.log('Tüm görevlerin listesi:', allTasks.data);
+  } catch (error) {
+    console.error('Error occurred:', error.message);
   }
 }
-//hata yakalama
-main().catch(error => {
-  console.error('Error occurred:', error);
-});
+// hata yakalama
+main();
 /*
 // Çalışanları oluştururuz (mesela Canan ve Mehmet olsun)
 const canan = new Employee('Canan', 'Excel', 98);
