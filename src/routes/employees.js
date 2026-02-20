@@ -1,14 +1,14 @@
-const express = require('express');
+const express = require('express')
 
-const router = express.Router();
-const Employee = require('../employee'); // Sınıfı çağırdık
+const router = express.Router()
+const Employee = require('../employee') // Sınıfı çağırdık
 
-const Task = require('../task');
+const Task = require('../task')
 
 /* GET tüm çalışanları listele. */
 router.get('/', function (req, res, next) {
-  res.send(Employee.list);
-});
+  res.send(Employee.list)
+})
 
 /* POST yeni çalışan oluştur */
 router.post('/', function (req, res, next) {
@@ -17,27 +17,27 @@ router.post('/', function (req, res, next) {
       name: req.body.name,
       mainSkill: req.body.mainSkill,
       skillLevel: req.body.skillLevel,
-    });
-    res.send(employee);
+    })
+    res.send(employee)
   } catch (error) {
-    console.error('Kayıt hatası:', error);
-    res.status(400).send('Kayıt oluşturulurken hata oluştu.');
+    console.error('Kayıt hatası:', error)
+    res.status(400).send('Kayıt oluşturulurken hata oluştu.')
   }
-});
+})
 router.post('/:name/tasks', function (req, res, next) {
   try {
-    const employee = Employee.list.find(emp => emp.name === req.params.name);
+    const employee = Employee.list.find(emp => emp.name === req.params.name)
     if (!employee) {
-      return res.status(404).send('Çalışan bulunamadı.');
+      return res.status(404).send('Çalışan bulunamadı.')
     }
-    const { title, requiredSkill, difficulty } = req.body;
-    const newTask = new Task(title, requiredSkill, difficulty);
-    employee.tasks.push(newTask);
-    res.status(201).send(newTask);
+    const { title, requiredSkill, difficulty } = req.body
+    const newTask = new Task(title, requiredSkill, difficulty)
+    employee.tasks.push(newTask)
+    res.status(201).send(newTask)
   } catch (error) {
-    console.error('Görev oluşturma hatası:', error);
-    res.status(400).send('Görev oluşturulurken hata oluştu.');
+    console.error('Görev oluşturma hatası:', error)
+    res.status(400).send('Görev oluşturulurken hata oluştu.')
   }
-});
+})
 
-module.exports = router;
+module.exports = router

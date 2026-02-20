@@ -1,35 +1,35 @@
-const express = require('express');
+const express = require('express')
 
-const router = express.Router();
-const Employee = require('../employee');
-const Task = require('../task');
+const router = express.Router()
+const Employee = require('../employee')
+const Task = require('../task')
 
 router.get('/', function (req, res, next) {
-  Employee.list = [];
+  Employee.list = []
 
-  const canan = Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 });
-  const mehmet = Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 });
+  const canan = Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 })
+  const mehmet = Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 })
 
-  const zorGorev = new Task('Bütçe Analizi', 'Excel', 4);
+  const zorGorev = new Task('Bütçe Analizi', 'Excel', 4)
   // mehmet denesin ama başarısız olsun cünkü seviyesi yetersiz
-  let mehmetSonuc = 'Mehmet denedi: ';
+  let mehmetSonuc = 'Mehmet denedi: '
   if (mehmet.canHandle(zorGorev)) {
-    zorGorev.assignTo(mehmet);
-    mehmetSonuc += 'Başarılı!';
+    zorGorev.assignTo(mehmet)
+    mehmetSonuc += 'Başarılı!'
   } else {
-    mehmetSonuc += 'Başarısız (Yetersiz Seviye)';
+    mehmetSonuc += 'Başarısız (Yetersiz Seviye)'
   }
   // sonra canana deniyor ve basarılı oluyor cünkü seviyesi yeterli
   if (canan.canHandle(zorGorev)) {
-    zorGorev.assignees.push(canan);
+    zorGorev.assignees.push(canan)
     // görev bitsin.
-    canan.completeTask(zorGorev);
-    zorGorev.isCompleted = true;
+    canan.completeTask(zorGorev)
+    zorGorev.isCompleted = true
   }
 
   // Yardım kısmı
-  zorGorev.helper = canan;
-  canan.helpPeer(mehmet);
+  zorGorev.helper = canan
+  canan.helpPeer(mehmet)
 
   res.send(`
     <h1>TUVIA SİMÜLASYON RAPORU</h1>
@@ -38,7 +38,7 @@ router.get('/', function (req, res, next) {
     <hr>
     <h3>Tüm Çalışanlar (JSON)</h3>
     <pre>${JSON.stringify(Employee.list, null, 2)}</pre>
-  `);
-});
+  `)
+})
 
-module.exports = router;
+module.exports = router

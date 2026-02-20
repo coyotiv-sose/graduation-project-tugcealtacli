@@ -10,13 +10,13 @@ class Task {
     this.difficulty = difficulty // Görev zorluğu
     //tüm görevleri tutacak bir liste oluşturduk
     static create({title, requiredSkill, difficulty}) {
-      const task = new Task(title, requiredSkill, difficulty);
-      Task.list.push(task);
-      return task;
+      const task = new Task(title, requiredSkill, difficulty)
+      Task.list.push(task)
+      return task
     }
   }
-
-  get report() {
+  get report()
+  {
     // raporlama (getter) yapıyoruz,get metodu bir fonksiyon gibi değil, bir özellik gibi kullanılır. Bu rapor, görevin durumunu ve atanan ekip üyelerini gösterir.
     return `
 # Tuvia Görev Raporu: ${this.title}
