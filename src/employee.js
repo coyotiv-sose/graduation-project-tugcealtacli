@@ -10,11 +10,12 @@ class Employee {
     this.tasks = [];
     //çalışanın kendi görevlerini oluşturması ve kişisel listesine eklemesi için
     createTask(title, requiredSkill, difficulty) {
-      const task = Task.create(title, requiredSkill, difficulty);
+      const task = Task.create({title, requiredSkill, difficulty});
       this.tasks.push(task);
       return task;
+
     }
-  }
+
 
   // Tuvia Vizyonu: Risk Minimizasyonu
   canHandle(task) {

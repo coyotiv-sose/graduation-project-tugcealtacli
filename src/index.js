@@ -30,10 +30,17 @@ async function main() {
   console.log('List of all employees:', allEmployees.data);
   await axios.post('http://localhost:3000/employees/Canan/tasks', {title: 'Arayüz', requiredSkill: 'JS', difficulty: 'Orta'});
   await axios.post('http://localhost:3000/employees/Mehmet/tasks', {title: 'Backend', requiredSkill: 'Node.js', difficulty: 'Zor'});
-
+  const newTask = await axios.get('http://localhost:3000/tasks',{
+  title: 'Bütçe Analizi',
+  requiredSkill: 'Excel',
+  difficulty: 'Zor'
+});
+console.log( 'Yeni oluşturulan görev:', newTask.data);
+  const allTasks = await axios.get('http://localhost:3000/tasks');
+  console.log('Tüm görevlerin listesi:', allTasks.data);
+  }
 }
 //hata yakalama
-}
 main().catch(error => {
   console.error('Error occurred:', error);
 });

@@ -9,10 +9,10 @@ class Task {
     this.isCompleted = false // İş bitti mi?-false=hayır bitmedi, true=evet bitti
     this.difficulty = difficulty // Görev zorluğu
     //tüm görevleri tutacak bir liste oluşturduk
-    static create(title, requiredSkill, difficulty) {
+    static create({title, requiredSkill, difficulty}) {
       const task = new Task(title, requiredSkill, difficulty);
-      Task.list.push(newTask);
-      return newTask;
+      Task.list.push(task);
+      return task;
     }
   }
 
