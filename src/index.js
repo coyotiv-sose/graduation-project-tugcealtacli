@@ -16,9 +16,9 @@ const Employee = require('./employee') // Employee sınıfını kendi dosyasınd
 async function main() {
   try {
     console.log('Çalışanları oluşturuyoruz...')
-    await axios.post('http://localhost:3000/employees', { name: 'Canan' })
+    await axios.post('http://localhost:3000/employees', { name: 'Canan', mainSkill: 'JS', skillLevel: 5 })
     // console.log(canan.data);
-    await axios.post('http://localhost:3000/employees', { name: 'Mehmet' })
+    await axios.post('http://localhost:3000/employees', { name: 'Mehmet', mainSkill: 'Node.js', skillLevel: 4 })
     // console.log(mehmet.data);
     // const allEmployees = await axios.get('http://localhost:3000/employees');
     console.log('2. görevler direkt çalışanlara atanıyor..')
@@ -26,12 +26,12 @@ async function main() {
     await axios.post('http://localhost:3000/employees/Canan/tasks', {
       title: 'Arayüz',
       requiredSkill: 'JS',
-      difficulty: 'Orta',
+      difficulty: '3',
     })
     await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
       title: 'Backend',
       requiredSkill: 'Node.js',
-      difficulty: 'Zor',
+      difficulty: '5',
     })
     console.log('3. Sistemdeki güncel durum..\n')
     const allEmployees = await axios.get('http://localhost:3000/employees')
