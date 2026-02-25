@@ -17,7 +17,6 @@ class Employee {
     return task
   }
 
-  // Tuvia Vizyonu: Risk Minimizasyonu
   canHandle(task) {
     if (task.requiredSkill !== this.mainSkill) {
       console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red)
@@ -45,13 +44,6 @@ class Employee {
     throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!')
   }
 
-  /*
-  static create({ name, mainSkill, skillLevel }) {
-    const employee = new Employee(name, mainSkill, skillLevel)
-    Employee.list.push(employee)
-    return employee
-  }
-    */
   static create(employeeObj) {
     console.log('Creating a new employee', employeeObj)
     const employee = new Employee(employeeObj.name, employeeObj.mainSkill, employeeObj.skillLevel)

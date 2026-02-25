@@ -36,18 +36,19 @@ async function main() {
     console.log('3. Sistemdeki güncel durum..\n')
     const allEmployees = await axios.get('http://localhost:3000/employees')
     console.log(JSON.stringify(allEmployees.data, null, 2)) // tüm çalışanları ve görevlerini güzel formatta yazdırır. 2 dediğimiz de 2 boşluk bırakarak yazdırır
-    /* const newTask = await axios.get('http://localhost:3000/tasks', {
+    /* const newTask = await axios.post('http://localhost:3000/tasks', {
       title: 'Bütçe Analizi',
       requiredSkill: 'Excel',
-      difficulty: 'Zor',
-    });
+      difficulty: '5',
+    })
     console.log('Yeni oluşturulan görev:', newTask.data)
     const allTasks = await axios.get('http://localhost:3000/tasks')
     console.log('Tüm görevlerin listesi:', allTasks.data)
-  */
+     */
   } catch (error) {
     console.error('Error occurred:', error.message)
   }
+  //console.log(task)
 }
 main()
 /*
