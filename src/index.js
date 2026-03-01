@@ -1,54 +1,45 @@
-/* const TaskReporter = require('./task-reporter'); // TaskReporter sınıfını kendi dosyasından çağırıyoruz burda.
-architecture
-console.log("RENK TEST".green)//denemee
-require('colors')//renk için (npm install colors)
- const Task = require('./task')//sınıfları kendi dosyalarından çağırdık
- fetch employees with axios
- axios.get('http://localhost:4000/employees').then(response => {
-  console.log(response.data)
- })
- const { default: axios } = require("axios")
- axios ile çalışanları getiririz.
-*/
 const axios = require('axios') // axios kütüphanesini ekledik (npm install axios)
 const Employee = require('./employee') // Employee sınıfını kendi dosyasından çağırdık
 
 async function main() {
   try {
     console.log('Çalışanları oluşturuyoruz...')
-    await axios.post('http://localhost:3000/employees', { name: 'Canan', mainSkill: 'JS', skillLevel: 5 })
+    const canan = await axios.post('http://localhost:3000/employees', { name: 'Canan', mainSkill: 'JS', skillLevel: 5 })
+    console.log('✅ Çalışan eklendi:', canan.data.name)
+    const mehmet = await axios.post('http://localhost:3000/employees', {
+      name: 'Mehmet',
+      mainSkill: 'Node.js',
+      skillLevel: 4,
+    })
+    console.log('✅ Çalışan eklendi:', mehmet.data.name)
+    // await axios.post('http://localhost:3000/employees', { name: 'Canan', mainSkill: 'JS', skillLevel: 5 })
     // console.log(canan.data);
-    await axios.post('http://localhost:3000/employees', { name: 'Mehmet', mainSkill: 'Node.js', skillLevel: 4 })
+    // await axios.post('http://localhost:3000/employees', { name: 'Mehmet', mainSkill: 'Node.js', skillLevel: 4 })
     // console.log(mehmet.data);
     // const allEmployees = await axios.get('http://localhost:3000/employees');
     console.log('2. görevler direkt çalışanlara atanıyor..')
-    // console.log('List of all employees:', allEmployees.data);
-    await axios.post('http://localhost:3000/employees/Canan/tasks', {
-      title: 'Arayüz',
+    const task1 = await axios.post('http://localhost:3000/employees/Canan/tasks', {
+      title: 'Arayüz Tasarımı',
       requiredSkill: 'JS',
       difficulty: '3',
     })
+    console.log('✅ Görev atandı:', task1.data.title, '->', 'Canan')
+    console.log(' Yetkinlik dışı görev atanmaya çalışılıyor..')
     await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
-      title: 'Backend',
-      requiredSkill: 'Node.js',
-      difficulty: '5',
+      title: 'Arayüz Tasarımı',
+      requiredSkill: 'JS', // mehmet node.js uzmanı!!hata vermesi lazım
+      difficulty: '3',
     })
-    console.log('3. Sistemdeki güncel durum..\n')
-    const allEmployees = await axios.get('http://localhost:3000/employees')
-    console.log(JSON.stringify(allEmployees.data, null, 2)) // tüm çalışanları ve görevlerini güzel formatta yazdırır. 2 dediğimiz de 2 boşluk bırakarak yazdırır
-    /* const newTask = await axios.post('http://localhost:3000/tasks', {
-      title: 'Bütçe Analizi',
-      requiredSkill: 'Excel',
-      difficulty: '5',
-    })
-    console.log('Yeni oluşturulan görev:', newTask.data)
-    const allTasks = await axios.get('http://localhost:3000/tasks')
-    console.log('Tüm görevlerin listesi:', allTasks.data)
-     */
   } catch (error) {
-    console.error('Error occurred:', error.message)
+    console.log('Tuvia hata yakaladı:', error.response ? error.response.data.error : error.message)
   }
-  //console.log(task)
+  try {
+    const allEmployees = await axios.get('http://localhost:3000/employees')
+    console.log('\n📊 GÜNCEL SİSTEM RAPORU:')
+    console.log(JSON.stringify(allEmployees.data, null, 2))
+  } catch (error) {
+    console.error('Rapor alınamadı:', error.message)
+  }
 }
 main()
 /*
