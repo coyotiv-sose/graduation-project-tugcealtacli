@@ -1,3 +1,4 @@
+require('./database-connection') // Veritabanı bağlantısını sağlıyoruz
 const express = require('express')
 
 const path = require('path')
