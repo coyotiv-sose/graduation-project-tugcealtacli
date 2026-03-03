@@ -1,4 +1,4 @@
-class Task {
+/*class Task {
   // hocanın projesindeki picnic sınıfına denk= task sınıfı
   constructor(title, requiredSkill, difficulty) {
     // başlığı ve gereken yeteneği (o iş için gereken yetkinlikten söz ediyoruz)parametre olarak alır
@@ -9,16 +9,13 @@ class Task {
     this.isCompleted = false // İş bitti mi?-false=hayır bitmedi, true=evet bitti
     this.difficulty = difficulty // Görev zorluğu
   }
-
   // tüm görevleri tutacak bir liste oluşturduk
   static list = []
-
   static create({ title, requiredSkill, difficulty }) {
     const task = new Task(title, requiredSkill, difficulty)
     Task.list.push(task)
     return task
   }
-
   get report() {
     // raporlama
     return `
@@ -31,6 +28,17 @@ ${this.helper ? `Destek    : ${this.helper.name} (+20 Puan)` : 'Destek    : -'}
 `
   }
 }
+module.exports = Task
+*/
+const mongoose = require('mongoose')
 
-module.exports = Task // Bu sınıfı diğer dosyaların kullanımına açıyoruz
-// çıkış kapısı denebilir. task kalıbını paketler.
+const taskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  requiredSkill: { type: String, required: true },
+  difficulty: { type: Number, required: true },
+  isCompleted: { type: Boolean, default: false }
+  assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
+  helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null },
+}, { timestamps: true })
+
+const Task = mongoose.model('Task', taskSchema)

@@ -1,44 +1,49 @@
 const express = require('express')
-
 const router = express.Router()
 const Employee = require('../employee')
 const Task = require('../task')
 
-router.get('/', function (req, res, next) {
-  Employee.list = []
+router.get('/', async function (req, res, next) {
+  try {
+    await Employee.deleteMany({})
+    await Task.deleteMany({})
+  }//her seferinde temiz bir başlangıç yapalım diye çalışanları ve görevleri sıfırladık
 
-  const canan = Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 })
-  const mehmet = Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 })
-
-  const zorGorev = new Task('Bütçe Analizi', 'Excel', 4)
-  // mehmet denesin ama başarısız olsun cünkü seviyesi yetersiz
-  let mehmetSonuc = 'Mehmet denedi: '
-  if (mehmet.canHandle(zorGorev)) {
-    zorGorev.assignTo(mehmet)
+    const canan = await Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 })
+    const mehmet = await Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 })
+    const zorGorev = await Task.create({ title: 'Bütçe Analizi', requiredSkill: 'Excel', difficulty: 4 })
+    // mehmet denesin ama başarısız olsun cünkü seviyesi yetersiz
+    let mehmetSonuc = 'Mehmet denedi: '
+    if (mehmet.canHandle(zorGorev)) {
+      zorGorev.assignees.push(mehmet)
     mehmetSonuc += 'Başarılı!'
   } else {
     mehmetSonuc += 'Başarısız (Yetersiz Seviye)'
   }
-  // sonra canana deniyor ve basarılı oluyor cünkü seviyesi yeterli
   if (canan.canHandle(zorGorev)) {
     zorGorev.assignees.push(canan)
-    // görev bitsin.
-    canan.completeTask(zorGorev)
-    zorGorev.isCompleted = true
+    await canan.completeTask(zorGorev)
   }
 
   // Yardım kısmı
   zorGorev.helper = canan
-  canan.helpPeer(mehmet)
+  await canan.helpPeer(mehmet)
+  await zorGorev.save()
+  //rapor için idleri gerçek isimlerle eşleştiriyoruz populate ile
+   const populatedGorev = await Task.findById(zorGorev._id).populate('assignees helper')
+
 
   res.send(`
     <h1>TUVIA SİMÜLASYON RAPORU</h1>
     <p><strong>Mehmet Durumu:</strong> ${mehmetSonuc}</p>
-    <pre>${zorGorev.report}</pre>
+    <pre>${populatedGorev.report}</pre>
     <hr>
     <h3>Tüm Çalışanlar (JSON)</h3>
-    <pre>${JSON.stringify(Employee.list, null, 2)}</pre>
+    <pre>${JSON.stringify(allEmployees, null, 2)}</pre>
   `)
+} catch (err) {
+  res.status(500).send('Bir hata oluştu: ' + err.message)
 })
+
 
 module.exports = router
