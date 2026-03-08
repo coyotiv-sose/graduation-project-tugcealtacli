@@ -1,3 +1,4 @@
+require('dotenv').config() // .env dosyasındaki ortam değişkenlerini yükle
 require('./database-connection') // Veritabanı bağlantısını sağlıyoruz
 const express = require('express')
 

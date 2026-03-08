@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
 mongoose
-  .connect('mongodb://127.0.0.1:27017/tuvia')
+  .connect(process.env.MONGODB_CONNECTION_STRING)
   .then(() => console.log('Tuvia veritabanına bağlandı.'))
   .catch(err => console.error('Bağlantı hatası:', err))

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const colors = require('colors') // Renkler için bunu eklemelisin (npm install colors)
-/*const Task = require('./task')
+/* const Task = require('./task')
 
 class Employee {
   constructor(name, mainSkill, skillLevel) {
@@ -56,47 +56,50 @@ class Employee {
 Employee.list = []
 module.exports = Employee
 */
-const employeeSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  mainSkill: { type: String, required: true },
-  skillLevel: { type: Number, required: true },
-  points: { type: Number, default: 0 },
-  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }]
-}, { timestamps: true })
+const employeeSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    mainSkill: { type: String, required: true },
+    skillLevel: { type: Number, required: true },
+    points: { type: Number, default: 0 },
+    tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+  },
+  { timestamps: true }
+)
 
-employeeSchema.methods.canHandle = function(taskRequirements) {
-  if(taskRequirements.requiredSkill !== this.mainSkill) {
+employeeSchema.methods.canHandle = function (taskRequirements) {
+  if (taskRequirements.requiredSkill !== this.mainSkill) {
     console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red)
     return false
   }
-  if(this.skillLevel < taskRequirements.difficulty) {
+  if (this.skillLevel < taskRequirements.difficulty) {
     console.log(`${this.name} bu görevi üstlenemez, beceri seviyesi yeterli değil.`.yellow)
     return false
   }
   return true
 }
-employeeSchema.methods.createTask = async function(title, requiredSkill, difficulty) {
+employeeSchema.methods.createTask = async function (title, requiredSkill, difficulty) {
   const Task = mongoose.model('Task')
   const task = await Task.create({ title, requiredSkill, difficulty })
   this.tasks.push(task)
   await this.save()
   return task
 }
-employeeSchema.methods.completeTask = function(task) {
+employeeSchema.methods.completeTask = async function (task) {
   this.points += 50
   task.isCompleted = true
   await task.save()
   await this.save()
   console.log(`✅ ${this.name} "${task.title}" görevini tamamladı: +50 Puan!`.green)
 }
-employeeSchema.methods.helpPeer = async function(peer) {
+employeeSchema.methods.helpPeer = async function (peer) {
   this.points += 20
   peer.points += 5
   await this.save()
   await peer.save()
   console.log(`🤝 ${this.name}, ${peer.name} kişisine yardım etti. (+20 Puan)`.cyan)
 }
-employeeSchema.path('points').set(function(v) {
+employeeSchema.path('points').set(function (v) {
   if (this._isValidating) return v
   throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!')
 })

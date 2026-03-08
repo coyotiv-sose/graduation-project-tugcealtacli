@@ -1,4 +1,4 @@
-/*class Task {
+/* class Task {
   // hocanın projesindeki picnic sınıfına denk= task sınıfı
   constructor(title, requiredSkill, difficulty) {
     // başlığı ve gereken yeteneği (o iş için gereken yetkinlikten söz ediyoruz)parametre olarak alır
@@ -32,13 +32,16 @@ module.exports = Task
 */
 const mongoose = require('mongoose')
 
-const taskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  requiredSkill: { type: String, required: true },
-  difficulty: { type: Number, required: true },
-  isCompleted: { type: Boolean, default: false }
-  assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
-  helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null },
-}, { timestamps: true })
+const taskSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    requiredSkill: { type: String, required: true },
+    difficulty: { type: Number, required: true },
+    isCompleted: { type: Boolean, default: false },
+    assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
+    helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null },
+  },
+  { timestamps: true }
+)
 
 const Task = mongoose.model('Task', taskSchema)
