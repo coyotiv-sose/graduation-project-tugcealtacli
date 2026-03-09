@@ -3,7 +3,7 @@ const Employee = require('./employee') // Employee sınıfını kendi dosyasınd
 
 async function main() {
   try {
-    console.log('Çalışanları oluşturuyoruz...')
+    console.log('🤖 TUVIA OTONOM ASİSTAN: Çalışanlar sisteme ekleniyor...')
     const canan = await axios.post('http://localhost:3000/employees', { name: 'Canan', mainSkill: 'JS', skillLevel: 5 })
     console.log('✅ Çalışan eklendi:', canan.data.name)
     const mehmet = await axios.post('http://localhost:3000/employees', {
@@ -17,21 +17,21 @@ async function main() {
     // await axios.post('http://localhost:3000/employees', { name: 'Mehmet', mainSkill: 'Node.js', skillLevel: 4 })
     // console.log(mehmet.data);
     // const allEmployees = await axios.get('http://localhost:3000/employees');
-    console.log('2. görevler direkt çalışanlara atanıyor..')
+    console.log('🤖 TUVIA OTONOM ASİSTAN: Görevler yetkinlik bazlı atanıyor...')
     const task1 = await axios.post('http://localhost:3000/employees/Canan/tasks', {
       title: 'Arayüz Tasarımı',
       requiredSkill: 'JS',
       difficulty: '3',
     })
     console.log('✅ Görev atandı:', task1.data.title, '->', 'Canan')
-    console.log(' Yetkinlik dışı görev atanmaya çalışılıyor..')
+    console.log('🤖 TUVIA OTONOM ASİSTAN: Yetkinlik dışı görev ataması test ediliyor...')
     await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
       title: 'Arayüz Tasarımı',
       requiredSkill: 'JS', // mehmet node.js uzmanı!!hata vermesi lazım
       difficulty: '3',
     })
   } catch (error) {
-    console.log('Tuvia hata yakaladı:', error.response ? error.response.data.error : error.message)
+    console.log('Tuvia kural ihlalini engelledi:', error.response ? error.response.data.error : error.message)
   }
   try {
     const allEmployees = await axios.get('http://localhost:3000/employees')

@@ -6,7 +6,7 @@ const Employee = require('../employee') // Sınıfı çağırdık
 // get ile calışanları listele
 router.get('/', async (req, res) => {
   try {
-    const employees = await Employee.find().populate('tasks')
+    const employees = await Employee.find()
     res.send(
       employees.map(emp => ({
         name: emp.name,

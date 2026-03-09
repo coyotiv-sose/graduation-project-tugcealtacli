@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
-const colors = require('colors') // Renkler için bunu eklemelisin (npm install colors)
+const colors = require('colors') // Renkler için bunu eklemelisin (npm install colors yaptık)
+const autopopulate = require('mongoose-autopopulate') // Otomatik populate için (npm install mongoose-autopopulate yaptık)
 /* const Task = require('./task')
 
 class Employee {
@@ -62,11 +63,11 @@ const employeeSchema = new mongoose.Schema(
     mainSkill: { type: String, required: true },
     skillLevel: { type: Number, required: true },
     points: { type: Number, default: 0 },
-    tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+    tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task', autopopulate: { maxDepth: 1 } }],
   },
   { timestamps: true }
 )
-
+employeeSchema.plugin(autopopulate)
 employeeSchema.methods.canHandle = function (taskRequirements) {
   if (taskRequirements.requiredSkill !== this.mainSkill) {
     console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red)
@@ -87,6 +88,7 @@ employeeSchema.methods.createTask = async function (title, requiredSkill, diffic
 }
 employeeSchema.methods.completeTask = async function (task) {
   this.points += 50
+  // eslint-disable-next-line no-param-reassign
   task.isCompleted = true
   await task.save()
   await this.save()
@@ -94,12 +96,14 @@ employeeSchema.methods.completeTask = async function (task) {
 }
 employeeSchema.methods.helpPeer = async function (peer) {
   this.points += 20
+  // eslint-disable-next-line no-param-reassign
   peer.points += 5
   await this.save()
   await peer.save()
   console.log(`🤝 ${this.name}, ${peer.name} kişisine yardım etti. (+20 Puan)`.cyan)
 }
 employeeSchema.path('points').set(function (v) {
+  // eslint-disable-next-line no-underscore-dangle
   if (this._isValidating) return v
   throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!')
 })

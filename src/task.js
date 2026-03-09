@@ -31,6 +31,7 @@ ${this.helper ? `Destek    : ${this.helper.name} (+20 Puan)` : 'Destek    : -'}
 module.exports = Task
 */
 const mongoose = require('mongoose')
+const autopopulate = require('mongoose-autopopulate')
 
 const taskSchema = new mongoose.Schema(
   {
@@ -38,10 +39,26 @@ const taskSchema = new mongoose.Schema(
     requiredSkill: { type: String, required: true },
     difficulty: { type: Number, required: true },
     isCompleted: { type: Boolean, default: false },
-    assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
-    helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null },
+    assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee', autopopulate: { maxDepth: 1 } }],
+    helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null, autopopulate: { maxDepth: 1 } },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 )
-
-const Task = mongoose.model('Task', taskSchema)
+taskSchema.plugin(autopopulate)
+taskSchema.virtual('report').get(function () {
+  const assigneeNames =
+    this.assignees && this.assignees[0] && this.assignees[0].name
+      ? this.assignees.map(a => a.name).join(', ')
+      : 'Henüz atanan yok'
+  const helperName = this.helper && this.helper.name ? this.helper.name : 'Yok'
+  return `
+# Tuvia Görev Raporu: "${this.title}"
+Zorluk    : ${this.difficulty}/5
+Durum     : ${this.isCompleted ? ' Tamamlandı' : 'Devam Ediyor'}
+Ekip      : ${assigneeNames}
+Destek    : ${helperName} (+20 Puan)
+--------------------------
+`
+})
+module.exports = mongoose.model('Task', taskSchema)
+// const Task = mongoose.model('Task', taskSchema)
