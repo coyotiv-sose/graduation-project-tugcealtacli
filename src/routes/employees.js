@@ -29,6 +29,7 @@ router.post('/', async (req, res) => {
     res.status(400).send({ error: 'Çalışan oluşturma hatası.' })
   }
 })
+// eslint-disable-next-line consistent-return
 router.post('/:name/tasks', async (req, res) => {
   try {
     const employee = await Employee.findOne({ name: req.params.name })

@@ -26,12 +26,12 @@ router.get('/', async function (req, res, next) {
     if (canan.canHandle(zorGorev)) {
       zorGorev.assignees.push(canan)
       await zorGorev.save()
-      await canan.completeTask(zorGorev)
+      //  await canan.completeTask(zorGorev)
     }
 
     // Yardım kısmı
     zorGorev.helper = canan
-    await canan.helpPeer(mehmet)
+    // await canan.helpPeer(mehmet)
     await zorGorev.save()
     // rapor için idleri gerçek isimlerle eşleştiriyoruz populate ile
     // eslint-disable-next-line no-underscore-dangle

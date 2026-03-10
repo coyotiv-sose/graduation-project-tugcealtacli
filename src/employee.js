@@ -68,6 +68,7 @@ const employeeSchema = new mongoose.Schema(
   { timestamps: true }
 )
 employeeSchema.plugin(autopopulate)
+// eslint-disable-next-line func-names
 employeeSchema.methods.canHandle = function (taskRequirements) {
   if (taskRequirements.requiredSkill !== this.mainSkill) {
     console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red)
