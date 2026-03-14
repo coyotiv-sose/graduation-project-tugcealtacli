@@ -103,10 +103,11 @@ employeeSchema.methods.helpPeer = async function (peer) {
   await peer.save()
   console.log(`🤝 ${this.name}, ${peer.name} kişisine yardım etti. (+20 Puan)`.cyan)
 }
-employeeSchema.path('points').set(function (v) {
+/* employeeSchema.path('points').set(function (v) {
   // eslint-disable-next-line no-underscore-dangle
   if (this._isValidating) return v
   throw new Error('Puanlar otonomdur, dışarıdan müdahale edilemez!')
 })
+  */
 
 module.exports = mongoose.model('Employee', employeeSchema)
