@@ -21,14 +21,14 @@ async function main() {
     const task1 = await axios.post('http://localhost:3000/employees/Canan/tasks', {
       title: 'Arayüz Tasarımı',
       requiredSkill: 'JS',
-      difficulty: '3',
+      difficulty: 3,
     })
     console.log('✅ Görev atandı:', task1.data.title, '->', 'Canan')
     console.log('🤖 TUVIA OTONOM ASİSTAN: Yetkinlik dışı görev ataması test ediliyor...')
     await axios.post('http://localhost:3000/employees/Mehmet/tasks', {
       title: 'Arayüz Tasarımı',
       requiredSkill: 'JS', // mehmet node.js uzmanı!!hata vermesi lazım
-      difficulty: '3',
+      difficulty: 3,
     })
   } catch (error) {
     console.log('Tuvia kural ihlalini engelledi:', error.response ? error.response.data.error : error.message)

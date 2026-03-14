@@ -70,7 +70,7 @@ const employeeSchema = new mongoose.Schema(
 employeeSchema.plugin(autopopulate)
 // eslint-disable-next-line func-names
 employeeSchema.methods.canHandle = function (taskRequirements) {
-  if (taskRequirements.requiredSkill !== this.mainSkill) {
+  if (taskRequirements.requiredSkill.toLowerCase() !== this.mainSkill.toLowerCase()) {
     console.log(`❌ ${this.name} bu görevi alamaz. (Yetkinlik Uyuşmazlığı)`.red)
     return false
   }
@@ -82,7 +82,12 @@ employeeSchema.methods.canHandle = function (taskRequirements) {
 }
 employeeSchema.methods.createTask = async function (title, requiredSkill, difficulty) {
   const Task = mongoose.model('Task')
-  const task = await Task.create({ title, requiredSkill, difficulty })
+  const task = await Task.create({
+    title,
+    requiredSkill,
+    difficulty,
+    createdBy: this._id,
+  })
   this.tasks.push(task)
   await this.save()
   return task
@@ -91,6 +96,7 @@ employeeSchema.methods.completeTask = async function (task) {
   this.points += 50
   // eslint-disable-next-line no-param-reassign
   task.isCompleted = true
+  this.tasks = this.tasks.filter(t => t._id.toString() !== task._id.toString())
   await task.save()
   await this.save()
   console.log(`✅ ${this.name} "${task.title}" görevini tamamladı: +50 Puan!`.green)

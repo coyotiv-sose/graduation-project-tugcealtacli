@@ -51,6 +51,7 @@ taskSchema.virtual('report').get(function () {
       ? this.assignees.map(a => a.name).join(', ')
       : 'Henüz atanan yok'
   const helperName = this.helper && this.helper.name ? this.helper.name : 'Yok'
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }
   return `
 # Tuvia Görev Raporu: "${this.title}"
 Zorluk    : ${this.difficulty}/5

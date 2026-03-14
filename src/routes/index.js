@@ -27,8 +27,11 @@ router.get('/', async function (req, res, next) {
       zorGorev.assignees.push(canan)
       await zorGorev.save()
       //  await canan.completeTask(zorGorev)
+      if (!canan.tasks.includes(zorGorev._id)) {
+        canan.tasks.push(zorGorev._id)
+        await canan.save()
+      }
     }
-
     // Yardım kısmı
     zorGorev.helper = canan
     // await canan.helpPeer(mehmet)
