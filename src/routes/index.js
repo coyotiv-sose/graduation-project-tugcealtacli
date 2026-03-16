@@ -70,7 +70,7 @@ router.get('/', async function (req, res) {
       emp => emp.mainSkill == zorGorev.requiredSkill && !zorGorev.assignees.includes(emp._id)
     )
     if (helperCandidates.length > 0) {
-      const helper = helpercandidates[0]
+      const helper = helperCandidates[0]
       zorGorev.helper = helper._id
       await zorGorev.save()
     }
