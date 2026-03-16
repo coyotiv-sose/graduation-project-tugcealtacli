@@ -41,6 +41,7 @@ const taskSchema = new mongoose.Schema(
     isCompleted: { type: Boolean, default: false },
     assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee', autopopulate: { maxDepth: 1 } }],
     helper: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', default: null, autopopulate: { maxDepth: 1 } },
+    createdBy: { type: mongoose.Schema.Types.ObjectId,ref: 'Employee', default: null ,  autopopulate: {maxDepth: 1}},
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 )

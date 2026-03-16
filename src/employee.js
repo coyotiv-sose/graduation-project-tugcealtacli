@@ -96,7 +96,7 @@ employeeSchema.methods.completeTask = async function (task) {
   this.points += 50
   // eslint-disable-next-line no-param-reassign
   task.isCompleted = true
-  this.tasks = this.tasks.filter(t => t._id.toString() !== task._id.toString())
+  this.tasks = this.tasks.filter(t => t.toString() !== task._id.toString())
   await task.save()
   await this.save()
   console.log(`✅ ${this.name} "${task.title}" görevini tamamladı: +50 Puan!`.green)
