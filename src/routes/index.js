@@ -4,59 +4,84 @@ const router = express.Router()
 const Employee = require('../employee')
 const Task = require('../task')
 
+const DEMO_TASK_TITLE = 'Bütçe Analizi'
+
+function pickBestAssignee(suitableEmployees) {
+  return [...suitableEmployees].sort((a, b) => {
+    const dSkill = b.skillLevel - a.skillLevel
+    if (dSkill !== 0) return dSkill
+    return a.activeWorkload() - b.activeWorkload()
+  })[0]
+}
+
+function simulationHtml({ assignmentMessage, populatedGorev, allEmployees }) {
+  return `
+      <h1>TUVIA SİMÜLASYON RAPORU</h1>
+      <p>${assignmentMessage}</p>
+      <pre>${populatedGorev.report}</pre>
+      <hr>
+      <h3>Tüm Çalışanlar (JSON)</h3>
+      <pre>${JSON.stringify(allEmployees, null, 2)}</pre>
+    `
+}
+
+function emptyStateHtml() {
+  return `
+      <h1>TUVIA</h1>
+      <p>Henüz demo verisi yok. Örnek çalışanlar ve görevi yüklemek için:</p>
+      <pre>POST /demo/seed</pre>
+      <p>(Örnek: <code>curl -X POST http://localhost:3000/demo/seed</code>)</p>
+    `
+}
+
 router.get('/', async function (req, res) {
   try {
-    // her çalıştırmada veritabanını temizle
+    const zorGorev = await Task.findOne({ title: DEMO_TASK_TITLE })
+    if (!zorGorev) {
+      return res.status(200).send(emptyStateHtml())
+    }
+    const populatedGorev = await Task.findById(zorGorev._id)
+    const allEmployees = await Employee.find({})
+    const assignmentMessage = 'Mevcut veritabanı durumu (GET isteği veriyi silmez).'
+
+    res.send(
+      simulationHtml({
+        assignmentMessage,
+        populatedGorev,
+        allEmployees,
+      })
+    )
+  } catch (err) {
+    res.status(500).send(`Bir hata oluştu: ${err.message}`)
+  }
+})
+
+/**
+ * Prototip / sunum endpoint’i: DB’yi temizleyip sabit demo verisini yükler.
+ * Üretim ürünü akışı değildir; slayt veya jüri önünde “demo simülasyonu” olarak anlatılmalıdır.
+ */
+router.post('/demo/seed', async function (req, res) {
+  try {
     await Employee.deleteMany({})
     await Task.deleteMany({})
-    // çalışanları oluştur
     await Employee.create({ name: 'Canan', mainSkill: 'Excel', skillLevel: 5 })
     await Employee.create({ name: 'Mehmet', mainSkill: 'Excel', skillLevel: 2 })
-    // görev oluştur
-    const zorGorev = await Task.create({ title: 'Bütçe Analizi', requiredSkill: 'Excel', difficulty: 4 })
-    // mehmet denesin ama başarısız olsun cünkü seviyesi yetersiz
-    /* let mehmetSonuc = 'Mehmet denedi: '
-    if (mehmet.canHandle(zorGorev)) {
-      zorGorev.assignees.push(mehmet)
-      await zorGorev.save()
-      mehmetSonuc += 'Başarılı!'
-    } else {
-      mehmetSonuc += 'Başarısız (Yetersiz Seviye)'
-    }
-    if (canan.canHandle(zorGorev)) {
-      zorGorev.assignees.push(canan)
-      await zorGorev.save()
-      //  await canan.completeTask(zorGorev)
-      if (!canan.tasks.includes(zorGorev._id)) {
-        canan.tasks.push(zorGorev._id)
-        await canan.save()
-      }
-    }
-    // Yardım kısmı
-    zorGorev.helper = canan
-    // await canan.helpPeer(mehmet)
-    await zorGorev.save()
-    // rapor için idleri gerçek isimlerle eşleştiriyoruz populate ile
-    // eslint-disable-next-line no-underscore-dangle
-    const populatedGorev = await Task.findById(zorGorev._id)
+    const zorGorev = await Task.create({
+      title: DEMO_TASK_TITLE,
+      requiredSkill: 'Excel',
+      difficulty: 4,
+      dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    })
 
-    // allEmployees is not defined, you may need to fetch it
-    const allEmployees = await Employee.find({})
-
-
-    */
-    // sistem kendisi seçsin yetkinliğe göre(deneme yapıyorum)
-    // tüm çalışanları al
     const employees = await Employee.find({})
-    // görevi kimler yapabilir filtrele
-    const suitableEmployees = employees.filter(emp => emp.canHandle(zorGorev))
+    const suitableEmployees = employees.filter(
+      emp => emp.canHandle(zorGorev) && !emp.isBlockedForSkill(zorGorev.requiredSkill)
+    )
     let assignmentMessage = ''
     if (suitableEmployees.length === 0) {
       assignmentMessage = 'Bu görevi yapabilecek çalışan bulunamadı.'
     } else {
-      // ilk uygun çalışanı ata
-      const bestEmployee = suitableEmployees.sort((a, b) => b.skillLevel - a.skillLevel)[0]
-      // görevi ata
+      const bestEmployee = pickBestAssignee(suitableEmployees)
       zorGorev.assignees.push(bestEmployee._id)
       if (!bestEmployee.tasks.includes(zorGorev._id)) {
         bestEmployee.tasks.push(zorGorev._id)
@@ -65,27 +90,28 @@ router.get('/', async function (req, res) {
       await zorGorev.save()
       assignmentMessage = `Bu görev otomatik olarak ${bestEmployee.name} kişisine atandı.`
     }
-    // helper seçelim
+
     const helperCandidates = employees.filter(
-      emp => emp.mainSkill == zorGorev.requiredSkill && !zorGorev.assignees.includes(emp._id)
+      emp =>
+        emp.mainSkill.toLowerCase() === zorGorev.requiredSkill.toLowerCase() &&
+        !zorGorev.assignees.some(a => a.toString() === emp._id.toString())
     )
     if (helperCandidates.length > 0) {
       const helper = helperCandidates[0]
       zorGorev.helper = helper._id
       await zorGorev.save()
     }
-    // gerçek isimleri getiriyoruz. ne ile? populate ile.
-    const populatedGorev = await Task.findById(zorGorev, _id)
+
+    const populatedGorev = await Task.findById(zorGorev._id)
     const allEmployees = await Employee.find({})
 
-    res.send(`
-      <h1>TUVIA SİMÜLASYON RAPORU</h1>
-      <p>${assignmentMessage}</p>
-      <pre>${populatedGorev.report}</pre>
-      <hr>
-      <h3>Tüm Çalışanlar (JSON)</h3>
-      <pre>${JSON.stringify(allEmployees, null, 2)}</pre>
-    `)
+    res.status(201).send(
+      simulationHtml({
+        assignmentMessage,
+        populatedGorev,
+        allEmployees,
+      })
+    )
   } catch (err) {
     res.status(500).send(`Bir hata oluştu: ${err.message}`)
   }

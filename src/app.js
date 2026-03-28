@@ -6,11 +6,6 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 
-// Senin yazdığın sınıfları buraya dahil ediyoruz
-const Employee = require('./employee')
-const Task = require('./task')
-const TaskReporter = require('./task-reporter')
-
 const indexRouter = require('./routes/index')
 const employeesRouter = require('./routes/employees')
 // const tuviaRouter = require('./routes/tuvia');//tuvia.js dosyasını da dahil ediyoruz
