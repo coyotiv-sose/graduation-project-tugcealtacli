@@ -7,6 +7,6 @@ ADD . .
 
 # This installs all app dependencies in the container
 RUN npm install
-
+EXPOSE 8080
 # creates a command that runs the image and starts our app
 CMD ["npm", "start"]
