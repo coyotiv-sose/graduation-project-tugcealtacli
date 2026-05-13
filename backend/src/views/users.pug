@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1 Tuvia employees list
+  p welcome to #{employee ? employee.name : 'Yönetici'}
+
+  h2 Employees
+  ul#employees
+    each employee in employees
+      li.employee
+       h3= employee.name
+       p Yetkinlik: #{employee.mainSkill} (Seviye: #{employee.skillLevel})
+       p Puan: #{employee.points}
+  //ul#employees dersen bu id olur
+  //ul.employees dersen bu class olur

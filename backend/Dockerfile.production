@@ -1,0 +1,20 @@
+# fix the specific node-alpine version - updated in Jan 2025 to the current lts = long term supported
+FROM node:22-alpine3.21
+
+# ensures it doesn't require live reload extension in the production environment
+ENV NODE_ENV=production
+
+# all the commands that come after this, will run in the app directory
+WORKDIR /app
+
+# Copying this over before npm install will prevent reinstall of all the
+# dependencies everytime the container is started
+ADD package.json package-lock.json ./
+
+RUN npm install --production --ignore-scripts
+
+# Not mounting src folder on the container in this environment
+ADD bin ./bin
+ADD src ./src
+
+CMD [ "npm", "start" ]

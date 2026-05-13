@@ -1,8 +1,0 @@
-node_modules
-.history
-.eslintrc.js
-.prettierrc
-Dockerfile
-Dockerfile.production
-.git
-.env

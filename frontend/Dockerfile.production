@@ -1,0 +1,16 @@
+FROM node:alpine
+
+WORKDIR /app
+
+# Önce paketleri kopyala ve kur (Cache optimizasyonu için)
+COPY package*.json ./
+RUN npm install
+
+# Sonra tüm proje dosyalarını kopyala
+COPY . .
+
+# Vue/Vite'in kullandığı portu dışarı aç
+EXPOSE 5173
+
+# Vite projesini Cloud Run'da dışarıya (0.0.0.0) açmak için --host parametresi şarttır
+CMD ["npm", "run", "dev", "--", "--host"]
