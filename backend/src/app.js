@@ -16,12 +16,12 @@ const taskActivitiesRouter = require('./routes/task-activities')
 
 const app = express()
 
-// View engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
-//middleware setup
+
+// CORS Ayarı: Her origin'e (frontend linkine) izin veriyoruz
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:8080",
+  origin: true, 
   credentials: true
 }))
 
@@ -31,7 +31,6 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Routes
 app.use('/', indexRouter)
 app.use('/auth', authRouter)
 app.use('/employees', employeesRouter)
@@ -42,7 +41,7 @@ app.use('/task-activities', taskActivitiesRouter)
 app.createSocketServer = function (server) {
   const io = require('socket.io')(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:8080",
+      origin: true, // Socket için de kapıları açtık
       credentials: true
     }
   })
@@ -52,7 +51,6 @@ app.createSocketServer = function (server) {
   io.on('connection', (socket) => {
     console.log('Yeni bir kullanıcı bağlandı (Socket ID):', socket.id)
 
-    // Kullanıcıyı kendi özel odasına al
     socket.on('join_user_room', (userId) => {
       socket.join(userId)
       console.log(`Kullanıcı ${userId} kendi bildirim odasına katıldı.`)
@@ -63,7 +61,6 @@ app.createSocketServer = function (server) {
     })
   })
 
-  // 'io' nesnesini routerlardan erişebilmek için app'e set ediyoruz
   app.set('io', io)
 }
 
