@@ -1,12 +1,19 @@
-
-# This tells Docker to install an OS (alpine) with Node installed
 FROM node:alpine
 
-# This will add everything from the current folder to the docker container.
-ADD . .
+# Konteynır içinde çalışacağımız bir klasör oluşturuyoruz
+WORKDIR /app
 
-# This installs all app dependencies in the container
+# Google ana dizinde bile olsa git backend içindeki paket listesini al
+COPY backend/package*.json ./
+
+# Sadece backend bağımlılıklarını kur
 RUN npm install
+
+# Geri kalan her şeyi (backend klasöründeki kodları) içeri kopyala
+COPY backend/ .
+
+# Cloud Run'ın beklediği port
 EXPOSE 8080
-# creates a command that runs the image and starts our app
+
+# Uygulamayı başlat
 CMD ["npm", "start"]
