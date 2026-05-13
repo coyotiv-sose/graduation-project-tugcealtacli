@@ -1,19 +1,16 @@
 FROM node:alpine
 
-# Konteynır içinde çalışacağımız bir klasör oluşturuyoruz
+# Konteynır içinde çalışma dizinini ayarla
 WORKDIR /app
 
-# Google ana dizinde bile olsa git backend içindeki paket listesini al
-COPY backend/package*.json ./
-
-# Sadece backend bağımlılıklarını kur
+# Google zaten backend klasöründe, o yüzden yanındaki dosyaları direkt kopyala
+COPY package*.json ./
 RUN npm install
 
-# Geri kalan her şeyi (backend klasöründeki kodları) içeri kopyala
-COPY backend/ .
+# Geri kalan her şeyi kopyala
+COPY . .
 
-# Cloud Run'ın beklediği port
+# Cloud Run için portu aç
 EXPOSE 8080
 
-# Uygulamayı başlat
 CMD ["npm", "start"]
