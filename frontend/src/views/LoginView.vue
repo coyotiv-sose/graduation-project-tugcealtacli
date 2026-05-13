@@ -2,7 +2,6 @@
   <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-12 col-md-8 col-lg-5">
       
-      <!-- Logo ve Başlık -->
       <div class="text-center mb-4">
         <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3 shadow-sm mb-3" style="width: 60px; height: 60px;">
           <span class="fs-2 fw-bolder">T</span>
@@ -11,10 +10,8 @@
         <p class="text-muted">Yetenek ve yardımlaşma odaklı yönetim sistemi.</p>
       </div>
 
-      <!-- Giriş / Kayıt Kartı -->
       <div class="card shadow-lg border-0 rounded-4">
         
-        <!-- Sekmeler (Giriş Yap / Kayıt Ol) -->
         <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 px-4">
           <ul class="nav nav-pills nav-justified" role="tablist">
             <li class="nav-item" role="presentation">
@@ -32,7 +29,7 @@
                 :class="{ 'active': !isLoginMode, 'text-dark': isLoginMode }" 
                 @click="isLoginMode = false"
               >
-                Kayıt Ol
+                Kayııt Ol
               </button>
             </li>
           </ul>
@@ -40,7 +37,6 @@
 
         <div class="card-body p-4 p-md-5">
           
-          <!-- GİRİŞ FORMU -->
           <form v-if="isLoginMode" @submit.prevent="handleLogin" class="d-flex flex-column gap-3">
             <div>
               <label class="form-label fw-bold text-muted small">Ad Soyad</label>
@@ -69,7 +65,6 @@
             </button>
           </form>
 
-          <!-- KAYIT FORMU -->
           <form v-else @submit.prevent="handleRegister" class="d-flex flex-column gap-3">
             <div>
               <label class="form-label fw-bold text-muted small">Ad Soyad</label>
@@ -176,17 +171,16 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
   try {
+    // 1. Önce kullanıcıyı veritabanına kaydet
     await auth.register(registerForm.value)
-    alert('Kayıt başarılı! Yönlendiriliyorsunuz...')
     
-    // Kayıt başarılı olunca bilgileri login formuna taşıyıp giriş sekmesine atıyoruz
-    loginForm.value.name = registerForm.value.name
-    loginForm.value.password = registerForm.value.password
+    // 2. Kayıt olan kullanıcının bilgileriyle arka planda otomatik giriş yap
+    await auth.login(registerForm.value.name, registerForm.value.password)
     
-    isLoginMode.value = true
-    registerForm.value = { name: '', mainSkill: '', skillLevel: 1, password: '', adminSecret: '' }
+    // 3. Giriş başarılı olduğunda doğrudan ana sayfaya (panele) yönlendir
+    router.push('/')
+    
   } catch (error) {
-    // Backend'den gelen gerçek hatayı yakalayan kısım (Örn: next is not a function veya Şifre kısa vb.)
     alert('Hata Detayı: ' + (error.response?.data?.detail || error.response?.data?.error || 'Kayıt başarısız oldu.'))
   }
 }
