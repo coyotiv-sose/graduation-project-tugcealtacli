@@ -14,7 +14,7 @@ function employeeToDto(emp) {
     skills: Array.isArray(emp.skills)
       ? emp.skills.map(skill => ({
           name: skill.name,
-          level: skill.level,val
+          level: skill.level
         }))
       : [],
     points: emp.points || 0,
@@ -219,4 +219,3 @@ router.post('/:helperName/help/:peerName', async (req, res) => {
   }
 })
 module.exports = router
- 

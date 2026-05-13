@@ -1,7 +1,6 @@
 <template>
   <div class="container py-4">
     
-    <!-- Üst Başlık ve İstatistikler -->
     <header class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
       <div>
         <h1 class="fw-bolder text-dark mb-1">Görev Merkezi</h1>
@@ -21,7 +20,6 @@
       </div>
     </header>
 
-    <!-- YÖNETİCİ KİLİDİ: Sadece Yönetici İse Bu Formu Görür -->
     <section v-if="auth.user?.role === 'manager'" class="card border-0 shadow-sm mb-5">
       <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-4 border-start border-primary border-4 ps-2">
@@ -38,7 +36,6 @@
             </select>
           </div>
 
-          <!-- YAPAY ZEKA GİRİŞİ BURAYA EKLENDİ -->
           <div class="col-md-4">
             <div class="input-group shadow-sm">
               <input v-model="newTask.title" type="text" class="form-control bg-light border-end-0" placeholder="Kısa görev yaz (Örn: Butonu düzelt)" required />
@@ -72,7 +69,6 @@
       </div>
     </section>
 
-    <!-- Görevler Listesi -->
     <div class="d-flex flex-column gap-3">
       <div 
         v-for="task in tasks" 
@@ -82,7 +78,6 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             
-            <!-- Görev Detayları -->
             <div class="col-md-8 mb-3 mb-md-0">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <h4 class="fw-bold text-dark mb-0">{{ task.title }}</h4>
@@ -109,7 +104,6 @@
               </div>
             </div>
 
-            <!-- Aksiyon Butonları -->
             <div class="col-md-4 text-md-end">
               
               <div v-if="task.status === 'open'" class="d-flex justify-content-md-end gap-2">
@@ -136,7 +130,6 @@
       </div>
     </div>
 
-    <!-- Yardım Seçme Modalı (Bootstrap) -->
     <div v-if="helpModalOpen" class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -221,7 +214,6 @@ const selectedTaskForHelp = ref(null)
 const helpCandidates = ref([])
 const helpLoading = ref(false)
 
-// AI YÜKLEME DURUMU
 const isGeneratingAI = ref(false)
 
 const tasks = computed(() => taskStore.tasks)
@@ -231,8 +223,10 @@ const fetchEmployees = async () => {
   try {
     const response = await api.get('/employees')
     employees.value = response.data
+    console.log(employees.value)
   } catch (e) {
-    console.error('Çalışanlar alınamadı:', e)
+    console.error(e)
+    alert(e.response?.data?.error || e.message)
   }
 }
 
@@ -245,7 +239,6 @@ const statusBadgeClass = status => {
   return base + 'bg-light text-secondary border-secondary'
 }
 
-// YAPAY ZEKA FONKSİYONU
 const generateDescriptionWithAI = async () => {
   if (!newTask.value.title) return;
   
@@ -254,7 +247,6 @@ const generateDescriptionWithAI = async () => {
     const response = await api.post('/tasks/generate-description', {
       title: newTask.value.title
     });
-    // Gelen profesyonel metni input'a geri yazdır
     newTask.value.title = response.data.description;
   } catch (error) {
     alert(error.response?.data?.error || 'Yapay zeka açıklaması oluşturulamadı.');
@@ -281,7 +273,6 @@ const completeTask = async id => {
     await taskStore.fetchTasks()
     await fetchEmployees()
     await auth.restoreSession()
-    alert('Görev onaya gönderildi.')
   } catch (error) {
     alert(error.response?.data?.error || 'Tamamlama başarısız')
   }
@@ -346,7 +337,6 @@ const openHelpModal = async task => {
 const acceptHelp = async helperId => {
   try {
     await api.post(`/tasks/${selectedTaskForHelp.value.id}/accept-help`, { helperId })
-    alert('Yardım işlemi kaydedildi.')
     closeHelpModal()
     await taskStore.fetchTasks()
     await fetchEmployees()
