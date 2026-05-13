@@ -29,7 +29,7 @@
                 :class="{ 'active': !isLoginMode, 'text-dark': isLoginMode }" 
                 @click="isLoginMode = false"
               >
-                Kayııt Ol
+                Kayıt Ol
               </button>
             </li>
           </ul>
