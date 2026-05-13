@@ -27,23 +27,22 @@
         </div>
         
         <form @submit.prevent="addTask" class="row g-3 align-items-center">
-          <div class="col-md-3">
+          <div class="col-md-2">
             <select v-model="selectedEmployeeName" class="form-select bg-light" required>
-              <option disabled value="">Çalışan Seç</option>
+              <option disabled value="">Çalışan</option>
               <option v-for="emp in employees" :key="emp.id" :value="emp.name">
-                {{ emp.name }} - {{ emp.mainSkill }} (Lvl {{ emp.skillLevel }})
+                {{ emp.name }}
               </option>
             </select>
           </div>
 
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="input-group shadow-sm">
-              <input v-model="newTask.title" type="text" class="form-control bg-light border-end-0" placeholder="Kısa görev yaz (Örn: Butonu düzelt)" required />
+              <input v-model="newTask.title" type="text" class="form-control bg-light border-end-0" placeholder="Görev başlığı" required />
               <button 
                 @click="generateDescriptionWithAI" 
                 type="button" 
                 class="btn btn-warning fw-bold border" 
-                title="Yapay Zeka ile Detaylandır" 
                 :disabled="!newTask.title || isGeneratingAI"
               >
                 <span v-if="isGeneratingAI" class="spinner-border spinner-border-sm text-dark" role="status" aria-hidden="true"></span>
@@ -57,12 +56,16 @@
           </div>
 
           <div class="col-md-1">
-            <input v-model="newTask.difficulty" type="number" min="1" max="5" class="form-control bg-light" placeholder="Zorluk" required />
+            <input v-model="newTask.difficulty" type="number" min="1" max="5" class="form-control bg-light" placeholder="Zor" required />
+          </div>
+
+          <div class="col-md-2">
+            <input v-model="newTask.dueAt" type="datetime-local" class="form-control bg-light" required />
           </div>
 
           <div class="col-md-2">
             <button type="submit" class="btn btn-primary fw-bold w-100 shadow-sm">
-              Atama Yap
+              Ata
             </button>
           </div>
         </form>
@@ -78,16 +81,17 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             
-            <div class="col-md-8 mb-3 mb-md-0">
+            <div class="col-md-7 mb-3 mb-md-0">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <h4 class="fw-bold text-dark mb-0">{{ task.title }}</h4>
                 <span :class="statusBadgeClass(task.status)">{{ task.status }}</span>
-                <span v-if="task.overdue" class="badge bg-danger border border-danger placeholder-wave">GECİKMİŞ</span>
+                <span v-if="task.overdue" class="badge bg-danger border border-danger">GECİKMİŞ</span>
               </div>
 
               <div class="d-flex flex-wrap gap-2 small text-muted mb-2">
                 <span class="badge bg-white text-dark border">🛠 {{ task.requiredSkill }}</span>
                 <span class="badge bg-white text-dark border">⭐ Zorluk: {{ task.difficulty }}/5</span>
+                <span v-if="task.dueAt" class="badge bg-white text-dark border">📅 Teslim: {{ new Date(task.dueAt).toLocaleString() }}</span>
               </div>
 
               <div v-if="task.assignees && task.assignees.length" class="small mt-2">
@@ -98,24 +102,29 @@
               <div v-if="task.helper" class="small mt-1 text-primary fw-bold">
                 🤝 Destek: {{ task.helper.name }}
               </div>
-
-              <div class="small text-muted mt-1" style="font-size: 0.75rem;">
-                Yardım Olayı Sayısı: {{ task.helpEventCount || 0 }}
-              </div>
             </div>
 
-            <div class="col-md-4 text-md-end">
+            <div class="col-md-5 text-md-end">
               
-              <div v-if="task.status === 'open'" class="d-flex justify-content-md-end gap-2">
-                <button @click="completeTask(task.id)" class="btn btn-success fw-bold btn-sm shadow-sm">
-                  Tamamla
-                </button>
-                <button @click="openHelpModal(task)" class="btn btn-outline-primary fw-bold btn-sm shadow-sm">
-                  Yardım Öner
-                </button>
+              <div v-if="task.status === 'open' && isOwner(task)">
+                <div class="d-flex justify-content-md-end gap-2 mb-2">
+                  <button @click="completeTask(task.id)" class="btn btn-success fw-bold btn-sm shadow-sm">
+                    Tamamla
+                  </button>
+                  <button v-if="!task.overdue" @click="openHelpModal(task)" class="btn btn-outline-primary fw-bold btn-sm shadow-sm">
+                    Yardım İste
+                  </button>
+                </div>
+                
+                <div v-if="task.overdue" class="p-2 bg-white border border-warning rounded text-center shadow-sm mt-2">
+                  <p class="small fw-bold text-dark mb-2">⚠️ Süre aşıldı! AI yardım öneriyor.</p>
+                  <button @click="openHelpModal(task)" class="btn btn-warning btn-sm fw-bold shadow-sm w-100">
+                    ✨ AI Destek Önerilerini Gör
+                  </button>
+                </div>
               </div>
 
-              <div v-else-if="task.status === 'pending_approval'" class="d-flex justify-content-md-end gap-2">
+              <div v-if="task.status === 'pending_approval' && auth.user?.role === 'manager'" class="d-flex justify-content-md-end gap-2">
                 <button @click="approveTask(task.id)" class="btn btn-success fw-bold btn-sm shadow-sm">
                   Onayla
                 </button>
@@ -205,6 +214,7 @@ const newTask = ref({
   title: '',
   requiredSkill: '',
   difficulty: '',
+  dueAt: ''
 })
 
 const selectedEmployeeName = ref('')
@@ -219,13 +229,18 @@ const isGeneratingAI = ref(false)
 const tasks = computed(() => taskStore.tasks)
 const overdueCount = computed(() => taskStore.overdueCount)
 
+const isOwner = (task) => {
+  if (!auth.user) return false;
+  const isAssignee = task.assignees?.some(a => a.name === auth.user.name);
+  const isHelper = task.helper?.name === auth.user.name;
+  return isAssignee || isHelper;
+}
+
 const fetchEmployees = async () => {
   try {
     const response = await api.get('/employees')
     employees.value = response.data
-    console.log(employees.value)
   } catch (e) {
-    console.error(e)
     alert(e.response?.data?.error || e.message)
   }
 }
@@ -258,7 +273,7 @@ const generateDescriptionWithAI = async () => {
 const addTask = async () => {
   try {
     await api.post(`/employees/${selectedEmployeeName.value}/tasks`, newTask.value)
-    newTask.value = { title: '', requiredSkill: '', difficulty: '' }
+    newTask.value = { title: '', requiredSkill: '', difficulty: '', dueAt: '' }
     selectedEmployeeName.value = ''
     await taskStore.fetchTasks()
     await fetchEmployees()
@@ -279,11 +294,7 @@ const completeTask = async id => {
 }
 
 const approveTask = async id => {
-  if (!auth.user) {
-    alert('Onay için giriş yapmış kullanıcı gerekli.')
-    return
-  }
-
+  if (!auth.user) return
   try {
     await api.patch(`/tasks/${id}/approve`, {
       approverName: auth.user.name,
@@ -297,13 +308,8 @@ const approveTask = async id => {
 }
 
 const rejectTask = async id => {
-  if (!auth.user) {
-    alert('Red için giriş yapmış kullanıcı gerekli.')
-    return
-  }
-
+  if (!auth.user) return
   const reason = prompt('Neden?')
-
   try {
     await api.patch(`/tasks/${id}/reject`, {
       approverName: auth.user.name,
