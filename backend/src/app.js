@@ -21,7 +21,7 @@ app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 //middleware setup
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:8080",
   credentials: true
 }))
 
@@ -42,7 +42,7 @@ app.use('/task-activities', taskActivitiesRouter)
 app.createSocketServer = function (server) {
   const io = require('socket.io')(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      origin: process.env.FRONTEND_URL || "http://localhost:8080",
       credentials: true
     }
   })

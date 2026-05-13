@@ -9,8 +9,10 @@ RUN npm install
 # Sonra tüm proje dosyalarını kopyala
 COPY . .
 
-# Vue/Vite'in kullandığı portu dışarı aç
-EXPOSE 5173
+# Cloud Run konteynere PORT verir (genelde 8080); vite.config.js process.env.PORT ile dinler.
+# Yerel imaj testi için varsayılan:
+ENV PORT=8080
+EXPOSE 8080
 
 # Vite projesini Cloud Run'da dışarıya (0.0.0.0) açmak için --host parametresi şarttır
 CMD ["npm", "run", "dev", "--", "--host"]
