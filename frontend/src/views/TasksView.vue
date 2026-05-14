@@ -75,7 +75,7 @@
     <div class="d-flex flex-column gap-3">
       <div 
         v-for="task in tasks" 
-        :key="task.id" 
+        :key="task.id || task._id" 
         :class="['card shadow-sm transition-all', task.overdue ? 'border-danger bg-danger bg-opacity-10' : 'border-light']"
       >
         <div class="card-body p-4">
@@ -108,7 +108,7 @@
               
               <div v-if="task.status === 'open' && isOwner(task)">
                 <div class="d-flex justify-content-md-end gap-2 mb-2">
-                  <button @click="completeTask(task.id)" class="btn btn-success fw-bold btn-sm shadow-sm">
+                  <button @click="completeTask(task.id || task._id)" class="btn btn-success fw-bold btn-sm shadow-sm">
                     Tamamla
                   </button>
                   <button v-if="!task.overdue" @click="openHelpModal(task)" class="btn btn-outline-primary fw-bold btn-sm shadow-sm">
@@ -125,10 +125,10 @@
               </div>
 
               <div v-if="task.status === 'pending_approval' && auth.user?.role === 'manager'" class="d-flex justify-content-md-end gap-2">
-                <button @click="approveTask(task.id)" class="btn btn-success fw-bold btn-sm shadow-sm">
+                <button @click="approveTask(task.id || task._id)" class="btn btn-success fw-bold btn-sm shadow-sm">
                   Onayla
                 </button>
-                <button @click="rejectTask(task.id)" class="btn btn-danger fw-bold btn-sm shadow-sm">
+                <button @click="rejectTask(task.id || task._id)" class="btn btn-danger fw-bold btn-sm shadow-sm">
                   Reddet
                 </button>
               </div>
@@ -209,21 +209,12 @@ const auth = useAuthStore()
 const taskStore = useTaskStore()
 
 const employees = ref([])
-
-const newTask = ref({
-  title: '',
-  requiredSkill: '',
-  difficulty: '',
-  dueAt: ''
-})
-
+const newTask = ref({ title: '', requiredSkill: '', difficulty: '', dueAt: '' })
 const selectedEmployeeName = ref('')
-
 const helpModalOpen = ref(false)
 const selectedTaskForHelp = ref(null)
 const helpCandidates = ref([])
 const helpLoading = ref(false)
-
 const isGeneratingAI = ref(false)
 
 const tasks = computed(() => taskStore.tasks)
@@ -231,8 +222,9 @@ const overdueCount = computed(() => taskStore.overdueCount)
 
 const isOwner = (task) => {
   if (!auth.user) return false;
-  const isAssignee = task.assignees?.some(a => a.name === auth.user.name);
-  const isHelper = task.helper?.name === auth.user.name;
+  const userName = auth.user.name;
+  const isAssignee = task.assignees?.some(a => a.name === userName);
+  const isHelper = task.helper?.name === userName;
   return isAssignee || isHelper;
 }
 
@@ -241,7 +233,7 @@ const fetchEmployees = async () => {
     const response = await api.get('/employees')
     employees.value = response.data
   } catch (e) {
-    alert(e.response?.data?.error || e.message)
+    console.error(e)
   }
 }
 
@@ -256,15 +248,12 @@ const statusBadgeClass = status => {
 
 const generateDescriptionWithAI = async () => {
   if (!newTask.value.title) return;
-  
   isGeneratingAI.value = true;
   try {
-    const response = await api.post('/tasks/generate-description', {
-      title: newTask.value.title
-    });
+    const response = await api.post('/tasks/generate-description', { title: newTask.value.title });
     newTask.value.title = response.data.description;
   } catch (error) {
-    alert(error.response?.data?.error || 'Yapay zeka açıklaması oluşturulamadı.');
+    alert('AI hatası oluştu.');
   } finally {
     isGeneratingAI.value = false;
   }
@@ -286,8 +275,8 @@ const completeTask = async id => {
   try {
     await api.patch(`/tasks/${id}/complete`, {})
     await taskStore.fetchTasks()
-    await fetchEmployees()
     await auth.restoreSession()
+    alert('Görev başarıyla tamamlandı, yönetici onayına gönderildi.')
   } catch (error) {
     alert(error.response?.data?.error || 'Tamamlama başarısız')
   }
@@ -296,30 +285,26 @@ const completeTask = async id => {
 const approveTask = async id => {
   if (!auth.user) return
   try {
-    await api.patch(`/tasks/${id}/approve`, {
-      approverName: auth.user.name,
-    })
+    await api.patch(`/tasks/${id}/approve`, { approverName: auth.user.name })
     await taskStore.fetchTasks()
-    await fetchEmployees()
     await auth.restoreSession()
+    alert('Görev onaylandı.')
   } catch (error) {
-    alert(error.response?.data?.error || 'Onay başarısız')
+    alert(error.response?.data?.error || 'Onay işlemi başarısız')
   }
 }
 
 const rejectTask = async id => {
   if (!auth.user) return
-  const reason = prompt('Neden?')
+  const reason = prompt('Reddetme nedenini yazın:')
+  if (!reason) return;
   try {
-    await api.patch(`/tasks/${id}/reject`, {
-      approverName: auth.user.name,
-      reason,
-    })
+    await api.patch(`/tasks/${id}/reject`, { approverName: auth.user.name, reason })
     await taskStore.fetchTasks()
-    await fetchEmployees()
     await auth.restoreSession()
+    alert('Görev reddedildi.')
   } catch (error) {
-    alert(error.response?.data?.error || 'Red başarısız')
+    alert(error.response?.data?.error || 'Red işlemi başarısız')
   }
 }
 
@@ -327,13 +312,11 @@ const openHelpModal = async task => {
   selectedTaskForHelp.value = task
   helpModalOpen.value = true
   helpLoading.value = true
-  helpCandidates.value = []
-
   try {
-    const res = await api.post(`/tasks/${task.id}/request-help`)
+    const res = await api.post(`/tasks/${task.id || task._id}/request-help`)
     helpCandidates.value = res.data.recommendedHelpers || []
   } catch (error) {
-    alert(error.response?.data?.error || 'Yardım önerileri alınamadı')
+    alert('Yardım önerileri şu an alınamıyor.')
     closeHelpModal()
   } finally {
     helpLoading.value = false
@@ -342,13 +325,12 @@ const openHelpModal = async task => {
 
 const acceptHelp = async helperId => {
   try {
-    await api.post(`/tasks/${selectedTaskForHelp.value.id}/accept-help`, { helperId })
+    await api.post(`/tasks/${selectedTaskForHelp.value.id || selectedTaskForHelp.value._id}/accept-help`, { helperId })
     closeHelpModal()
     await taskStore.fetchTasks()
-    await fetchEmployees()
     await auth.restoreSession()
   } catch (error) {
-    alert(error.response?.data?.error || 'Yardım işlemi başarısız')
+    alert('Yardım ataması yapılamadı.')
   }
 }
 
@@ -356,7 +338,6 @@ const closeHelpModal = () => {
   helpModalOpen.value = false
   selectedTaskForHelp.value = null
   helpCandidates.value = []
-  helpLoading.value = false
 }
 
 onMounted(async () => {
