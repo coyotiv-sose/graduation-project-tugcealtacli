@@ -166,7 +166,7 @@ router.post('/:name/tasks', async (req, res) => {
       title: task.title,
       requiredSkill: task.requiredSkill,
       difficulty: task.difficulty,
-      dueAt: task.dueAt ? task.dueAtISOString() : null,
+      dueAt: task.dueAt ? task.dueAt.toISOString() : null,
       status: task.status || 'open',
     })
   } catch (error) {
@@ -218,4 +218,5 @@ router.post('/:helperName/help/:peerName', async (req, res) => {
     })
   }
 })
+
 module.exports = router
