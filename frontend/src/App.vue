@@ -53,24 +53,89 @@
     <main class="container py-4">
       <router-view />
     </main>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 9999;">
+      <div 
+        v-for="notif in notifications" 
+        :key="notif.id" 
+        class="toast show align-items-center border-0 mb-3 shadow-lg"
+        :class="getToastColor(notif.type)"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-start gap-3 text-white">
+            <span class="fs-4 lh-1">{{ getToastIcon(notif.type) }}</span>
+            <div>
+              <strong class="d-block fs-6 mb-1">{{ notif.title }}</strong>
+              <span style="font-size: 0.9rem;">{{ notif.message }}</span>
+            </div>
+          </div>
+          <button @click="removeNotification(notif.id)" type="button" class="btn-close btn-close-white me-3 m-auto shadow-none"></button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
-import { useSocketStore } from './stores/socket'
+import api from './services/api'
+import { io } from 'socket.io-client'
 
 const auth = useAuthStore()
-const socketStore = useSocketStore()
 const router = useRouter()
+
+const notifications = ref([])
+let socket = null
+
+const getToastColor = (type) => {
+  if (type === 'success') return 'bg-success'
+  if (type === 'error') return 'bg-danger'
+  if (type === 'info') return 'bg-primary'
+  if (type === 'warning') return 'bg-warning text-dark'
+  return 'bg-dark'
+}
+
+const getToastIcon = (type) => {
+  if (type === 'success') return '✅'
+  if (type === 'error') return '❌'
+  if (type === 'info') return '🔔'
+  if (type === 'warning') return '⚠️'
+  return '💬'
+}
+
+const removeNotification = (id) => {
+  notifications.value = notifications.value.filter(n => n.id !== id)
+}
+
+const initSocket = (user) => {
+  if (socket) socket.disconnect()
+  
+  // Api baseURL üzerinden dinamik olarak sunucuya bağlanır
+  const backendUrl = api.defaults.baseURL || 'http://localhost:3000'
+  socket = io(backendUrl, { withCredentials: true })
+
+  socket.on('connect', () => {
+    // Backend'e kullanıcının ID'sini ve ROLÜNÜ gönderiyoruz ki doğru bildirimleri alsın
+    socket.emit('join_user_room', { userId: user.id, role: user.role })
+  })
+
+  socket.on('notification', (data) => {
+    const notif = { ...data, id: Date.now() }
+    notifications.value.push(notif)
+    
+    // Bildirimi 6 saniye sonra ekrandan otomatik sil
+    setTimeout(() => {
+      removeNotification(notif.id)
+    }, 6000)
+  })
+}
 
 const handleLogout = async () => {
   if (confirm('Çıkış yapmak istediğinize emin misiniz?')) {
-    // BE301 Step 3: Çıkış yaparken socket bağlantısını ve dinleyicileri temizler
-    socketStore.disconnect() 
-    
+    if (socket) socket.disconnect()
     await auth.logout()
     router.push('/login')
   }
@@ -78,13 +143,12 @@ const handleLogout = async () => {
 
 watch(() => auth.user, (newUser) => {
   if (newUser && newUser.id) {
-    socketStore.joinMyRoom(newUser.id)
+    initSocket(newUser)
   }
 }, { immediate: true })
 
 onMounted(async () => {
   await auth.restoreSession()
-  socketStore.init() 
 })
 </script>
 

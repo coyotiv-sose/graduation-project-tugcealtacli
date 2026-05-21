@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await api.post('/auth/logout')
     } catch (error) {
-      // sessiz geç
+      // Çıkış hatalarını sessiz geç
     }
 
     user.value = null

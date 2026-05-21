@@ -99,19 +99,13 @@ router.patch('/:taskId/reject', requireManager, async (req, res) => {
   try {
     const { approverName, reason } = req.body
 
-    if (!approverName) {
-      return res.status(400).send({ error: 'approverName gerekli.' })
-    }
+    if (!approverName) return res.status(400).send({ error: 'approverName gerekli.' })
 
     const task = await Task.findById(req.params.taskId)
-    if (!task) {
-      return res.status(404).send({ error: 'Görev bulunamadı.' })
-    }
+    if (!task) return res.status(404).send({ error: 'Görev bulunamadı.' })
 
     const approver = await Employee.findOne({ name: approverName })
-    if (!approver) {
-      return res.status(404).send({ error: 'Onaylayıcı bulunamadı.' })
-    }
+    if (!approver) return res.status(404).send({ error: 'Onaylayıcı bulunamadı.' })
 
     const submitterId = task.completionRequestedBy
 
@@ -123,10 +117,18 @@ router.patch('/:taskId/reject', requireManager, async (req, res) => {
       task: task._id,
       actor: approver._id,
       action: 'rejected',
-      meta: {
-        reason: typeof reason === 'string' ? reason : '',
-      },
+      meta: { reason: typeof reason === 'string' ? reason : '' },
     })
+
+    // YENİ: Çalışana reddedildi bildirimi gönder
+    const io = req.app.get('io')
+    if (io && submitterId) {
+      io.to(submitterId.toString()).emit('notification', {
+        type: 'error',
+        title: 'Görev Reddedildi',
+        message: `"${task.title}" göreviniz reddedildi. Neden: ${reason}`,
+      })
+    }
 
     res.send({
       id: task._id.toString(),
@@ -138,10 +140,7 @@ router.patch('/:taskId/reject', requireManager, async (req, res) => {
       skillRejections: submitterAfter ? submitterAfter.skillRejections : [],
     })
   } catch (error) {
-    res.status(400).send({
-      error: 'Red işlemi yapılamadı.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Red işlemi yapılamadı.', detail: error.message })
   }
 })
 
@@ -149,19 +148,13 @@ router.patch('/:taskId/approve', requireManager, async (req, res) => {
   try {
     const { approverName } = req.body
 
-    if (!approverName) {
-      return res.status(400).send({ error: 'approverName gerekli.' })
-    }
+    if (!approverName) return res.status(400).send({ error: 'approverName gerekli.' })
 
     const task = await Task.findById(req.params.taskId)
-    if (!task) {
-      return res.status(404).send({ error: 'Görev bulunamadı.' })
-    }
+    if (!task) return res.status(404).send({ error: 'Görev bulunamadı.' })
 
     const approver = await Employee.findOne({ name: approverName })
-    if (!approver) {
-      return res.status(404).send({ error: 'Onaylayıcı bulunamadı.' })
-    }
+    if (!approver) return res.status(404).send({ error: 'Onaylayıcı bulunamadı.' })
 
     const submitterId = task.completionRequestedBy
 
@@ -183,10 +176,18 @@ router.patch('/:taskId/approve', requireManager, async (req, res) => {
       task: task._id,
       actor: approver._id,
       action: 'approved',
-      meta: {
-        approverName: approver.name,
-      },
+      meta: { approverName: approver.name },
     })
+
+    // YENİ: Çalışana onaylandı ve puan eklendi bildirimi gönder
+    const io = req.app.get('io')
+    if (io && submitterId) {
+      io.to(submitterId.toString()).emit('notification', {
+        type: 'success',
+        title: 'Görev Onaylandı! 🎉',
+        message: `Tebrikler, "${task.title}" görevi onaylandı ve puanınız eklendi.`,
+      })
+    }
 
     res.send({
       id: task._id.toString(),
@@ -198,10 +199,7 @@ router.patch('/:taskId/approve', requireManager, async (req, res) => {
       approvedBy: approver.name,
     })
   } catch (error) {
-    res.status(400).send({
-      error: 'Onay verilemedi.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Onay verilemedi.', detail: error.message })
   }
 })
 
@@ -219,26 +217,18 @@ router.patch('/:taskId/complete', requireAuth, async (req, res) => {
     const { employeeName } = req.body || {}
 
     const task = await Task.findById(req.params.taskId).populate('assignees')
-    if (!task) {
-      return res.status(404).send({ error: 'Görev bulunamadı.' })
-    }
+    if (!task) return res.status(404).send({ error: 'Görev bulunamadı.' })
 
     let employee = null
-
     if (employeeName) {
       employee = await Employee.findOne({ name: employeeName })
-      if (!employee) {
-        return res.status(404).send({ error: 'Çalışan bulunamadı.' })
-      }
+      if (!employee) return res.status(404).send({ error: 'Çalışan bulunamadı.' })
     } else {
       if (!task.assignees || task.assignees.length === 0) {
         return res.status(400).send({ error: 'Bu görevin atanmış çalışanı yok.' })
       }
-
       employee = await Employee.findById(task.assignees[0]._id)
-      if (!employee) {
-        return res.status(404).send({ error: 'Görev sahibi çalışan bulunamadı.' })
-      }
+      if (!employee) return res.status(404).send({ error: 'Görev sahibi çalışan bulunamadı.' })
     }
 
     const taskIdStr = task._id.toString()
@@ -247,8 +237,8 @@ router.patch('/:taskId/complete', requireAuth, async (req, res) => {
       return id.toString() === taskIdStr
     })
 
-    if (!hasTask) {
-      return res.status(400).send({ error: 'Bu görev bu çalışana atanmamış.' })
+    if (!hasTask && (!task.helper || task.helper.toString() !== employee._id.toString())) {
+      return res.status(400).send({ error: 'Bu görev size atanmamış.' })
     }
 
     await employee.completeTask(task)
@@ -257,10 +247,18 @@ router.patch('/:taskId/complete', requireAuth, async (req, res) => {
       task: task._id,
       actor: employee._id,
       action: 'completion_requested',
-      meta: {
-        employeeName: employee.name,
-      },
+      meta: { employeeName: employee.name },
     })
+
+    // YENİ: Sadece yöneticilere "Tamamlama İsteği" bildirimi gönder
+    const io = req.app.get('io')
+    if (io) {
+      io.to('managers_room').emit('notification', {
+        type: 'info',
+        title: 'Görev Tamamlandı',
+        message: `${employee.name}, "${task.title}" görevini tamamladı ve onayınızı bekliyor.`,
+      })
+    }
 
     res.send({
       id: task._id.toString(),
@@ -276,10 +274,7 @@ router.patch('/:taskId/complete', requireAuth, async (req, res) => {
       message: 'Tamamlama isteği alındı; onay sonrası puan verilir.',
     })
   } catch (error) {
-    res.status(400).send({
-      error: 'Görev tamamlanamadı.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Görev tamamlanamadı.', detail: error.message })
   }
 })
 
@@ -302,31 +297,19 @@ router.post('/', requireManager, async (req, res) => {
       task: task._id,
       actor: null,
       action: 'created',
-      meta: {
-        title: task.title,
-      },
+      meta: { title: task.title },
     })
-
-    const io = req.app.get('io')
-    if (io) {
-      io.emit('task_created', taskToDto(task))
-    }
 
     res.status(201).send(taskToDto(task))
   } catch (error) {
-    res.status(400).send({
-      error: 'Görev eklenemedi.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Görev eklenemedi.', detail: error.message })
   }
 })
 
 router.post('/generate-description', requireManager, async (req, res) => {
   try {
     const { title } = req.body;
-    if (!title) {
-      return res.status(400).send({ error: 'Görev başlığı (title) eksik!' });
-    }
+    if (!title) return res.status(400).send({ error: 'Görev başlığı (title) eksik!' });
     
     const description = await generateTaskDescription(title);
     res.send({ description });
@@ -335,13 +318,28 @@ router.post('/generate-description', requireManager, async (req, res) => {
   }
 });
 
+// YENİ: Yönetici için sistemdeki görevlerin genel AI Durum Raporunu çıkaran rota
+router.get('/ai-report/general', requireManager, async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    const completed = tasks.filter(t => t.isCompleted).length;
+    const pending = tasks.filter(t => t.pendingApproval).length;
+    const overdue = tasks.filter(t => t.dueAt && t.dueAt < new Date() && !t.isCompleted).length;
+    const open = tasks.filter(t => !t.isCompleted && !t.pendingApproval && !t.rejected).length;
+
+    const promptText = `Sistemde toplam ${tasks.length} görev bulunuyor. Bunlardan ${completed} tanesi başarıyla tamamlandı, ${pending} tanesi yönetici onayı bekliyor, ${open} tanesi üzerinde çalışılıyor ve ${overdue} tanesinin teslim süresi geçmiş durumda. Yöneticiye sunulmak üzere, sistemin genel verimliliğini değerlendiren profesyonel, yapıcı ve 3 cümleyi geçmeyen bir durum raporu yaz.`;
+    
+    const report = await generateTaskDescription(promptText);
+    res.send({ report });
+  } catch (error) {
+    res.status(500).send({ error: 'Yapay zeka raporu oluşturulamadı.' });
+  }
+});
+
 router.post('/:taskId/request-help', requireAuth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId).populate('assignees')
-
-    if (!task) {
-      return res.status(404).send({ error: 'Görev bulunamadı.' })
-    }
+    if (!task) return res.status(404).send({ error: 'Görev bulunamadı.' })
 
     const assigneeIds = task.assignees ? task.assignees.map(a => a._id.toString()) : []
     const employees = await Employee.find({ role: { $ne: 'manager' } })
@@ -369,10 +367,7 @@ router.post('/:taskId/request-help', requireAuth, async (req, res) => {
       })),
     })
   } catch (error) {
-    res.status(400).send({
-      error: 'Yardım önerileri alınamadı.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Yardım önerileri alınamadı.', detail: error.message })
   }
 })
 
@@ -380,19 +375,13 @@ router.post('/:taskId/accept-help', requireAuth, async (req, res) => {
   try {
     const { helperId } = req.body
 
-    if (!helperId) {
-      return res.status(400).send({ error: 'helperId gerekli.' })
-    }
+    if (!helperId) return res.status(400).send({ error: 'helperId gerekli.' })
 
     const task = await Task.findById(req.params.taskId).populate('assignees')
-    if (!task) {
-      return res.status(404).send({ error: 'Görev bulunamadı.' })
-    }
+    if (!task) return res.status(404).send({ error: 'Görev bulunamadı.' })
 
     const helper = await Employee.findById(helperId)
-    if (!helper) {
-      return res.status(404).send({ error: 'Yardım edecek çalışan bulunamadı.' })
-    }
+    if (!helper) return res.status(404).send({ error: 'Yardım edecek çalışan bulunamadı.' })
 
     let peer = null;
     if (task.assignees && task.assignees.length > 0) {
@@ -430,11 +419,13 @@ router.post('/:taskId/accept-help', requireAuth, async (req, res) => {
 
     const updatedTask = await Task.findById(task._id).populate('assignees').populate('helper')
 
+    // YENİ: Yardım talep edilen kişiye (helper) anlık bildirim gönder
     const io = req.app.get('io')
-    if (io && peer) {
-      io.to(peer._id.toString()).emit('help_received', {
-        message: `${helper.name} size "${task.title}" görevinde yardım etmeye başladı! ✨`,
-        taskId: task._id.toString()
+    if (io && helper) {
+      io.to(helper._id.toString()).emit('notification', {
+        type: 'info',
+        title: 'Yeni Yardım Talebi 🤝',
+        message: `${peer ? peer.name : 'Sistem'} sizi "${task.title}" görevine yardımcı olarak atadı!`,
       })
     }
 
@@ -444,11 +435,7 @@ router.post('/:taskId/accept-help', requireAuth, async (req, res) => {
     })
     
   } catch (error) {
-    console.error("YARDIM ATAMA HATASI DETAYI:", error);
-    res.status(400).send({
-      error: 'Yardım işlemi yapılamadı.',
-      detail: error.message,
-    })
+    res.status(400).send({ error: 'Yardım işlemi yapılamadı.', detail: error.message })
   }
 })
 

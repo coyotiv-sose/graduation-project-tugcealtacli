@@ -161,6 +161,16 @@ router.post('/:name/tasks', async (req, res) => {
       dueAt
     )
 
+    // YENİ: Görev atandığında çalışana anlık bildirim fırlat (Socket.io)
+    const io = req.app.get('io')
+    if (io) {
+      io.to(employee._id.toString()).emit('notification', {
+        type: 'info',
+        title: 'Yeni Görev Atandı 🎯',
+        message: `Yönetici size yeni bir görev atadı: "${task.title}"`,
+      })
+    }
+
     res.status(201).send({
       id: task._id.toString(),
       title: task.title,

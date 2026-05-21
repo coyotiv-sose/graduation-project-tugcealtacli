@@ -17,6 +17,15 @@
           <p class="small fw-bold text-muted text-uppercase mb-0" style="font-size: 0.7rem;">Geciken</p>
           <p class="fs-4 fw-bolder text-danger mb-0">{{ overdueCount }}</p>
         </div>
+
+        <button 
+          v-if="auth.user?.role === 'manager'" 
+          @click="fetchAIReport" 
+          class="btn btn-dark shadow-sm fw-bold d-flex align-items-center gap-2 h-100"
+        >
+          <span>📊</span>
+          <span class="d-none d-md-inline">AI Raporu</span>
+        </button>
       </div>
     </header>
 
@@ -29,7 +38,7 @@
         <form @submit.prevent="addTask" class="row g-3 align-items-center">
           <div class="col-md-2">
             <select v-model="selectedEmployeeName" class="form-select bg-light" required>
-              <option disabled value="">Çalışan</option>
+              <option disabled value="">Çalışan Seç</option>
               <option v-for="emp in employees" :key="emp.id" :value="emp.name">
                 {{ emp.name }}
               </option>
@@ -52,7 +61,7 @@
           </div>
 
           <div class="col-md-2">
-            <input v-model="newTask.requiredSkill" type="text" class="form-control bg-light" placeholder="Yetenek" required />
+            <input v-model="newTask.requiredSkill" type="text" class="form-control bg-light" placeholder="Yetenek (Örn: React)" required />
           </div>
 
           <div class="col-md-1">
@@ -65,7 +74,7 @@
 
           <div class="col-md-2">
             <button type="submit" class="btn btn-primary fw-bold w-100 shadow-sm">
-              Ata
+              Görevi Ata
             </button>
           </div>
         </form>
@@ -84,7 +93,7 @@
             <div class="col-md-7 mb-3 mb-md-0">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <h4 class="fw-bold text-dark mb-0">{{ task.title }}</h4>
-                <span :class="statusBadgeClass(task.status)">{{ task.status }}</span>
+                <span :class="statusBadgeClass(task.status)">{{ formatStatus(task.status) }}</span>
                 <span v-if="task.overdue" class="badge bg-danger border border-danger">GECİKMİŞ</span>
               </div>
 
@@ -95,7 +104,7 @@
               </div>
 
               <div v-if="task.assignees && task.assignees.length" class="small mt-2">
-                <span class="fw-bold text-dark">Atananlar:</span> 
+                <span class="fw-bold text-dark">Sorumlu:</span> 
                 {{ task.assignees.map(a => a.name).join(', ') }}
               </div>
 
@@ -109,17 +118,17 @@
               <div v-if="task.status === 'open' && isOwner(task)">
                 <div class="d-flex justify-content-md-end gap-2 mb-2">
                   <button @click="completeTask(task.id || task._id)" class="btn btn-success fw-bold btn-sm shadow-sm">
-                    Tamamla
+                    ✅ Tamamla
                   </button>
                   <button v-if="!task.overdue" @click="openHelpModal(task)" class="btn btn-outline-primary fw-bold btn-sm shadow-sm">
-                    Yardım İste
+                    🤝 Yardım İste
                   </button>
                 </div>
                 
                 <div v-if="task.overdue" class="p-2 bg-white border border-warning rounded text-center shadow-sm mt-2">
                   <p class="small fw-bold text-dark mb-2">⚠️ Süre aşıldı! AI yardım öneriyor.</p>
                   <button @click="openHelpModal(task)" class="btn btn-warning btn-sm fw-bold shadow-sm w-100">
-                    ✨ AI Destek Önerilerini Gör
+                    ✨ Uygun Kişileri Bul
                   </button>
                 </div>
               </div>
@@ -136,6 +145,11 @@
             </div>
           </div>
         </div>
+      </div>
+      
+      <div v-if="tasks.length === 0" class="text-center py-5 text-muted">
+        <h5 class="fw-bold">Şu an sistemde hiç görev yok.</h5>
+        <p>Rahatlayabilirsiniz veya yeni görevler atayabilirsiniz.</p>
       </div>
     </div>
 
@@ -154,11 +168,11 @@
           <div class="modal-body py-4">
             <div v-if="helpLoading" class="text-center py-5 text-muted fw-bold">
               <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-              Yardım adayları yükleniyor...
+              Yapay Zeka uygun adayları analiz ediyor...
             </div>
 
             <div v-else-if="helpCandidates.length === 0" class="text-center py-5 text-muted fw-bold">
-              Bu görev için uygun yardımcı bulunamadı.
+              Şu an bu görev için yetkinliği uygun olan boşta bir çalışan bulunamadı.
             </div>
 
             <div v-else class="d-flex flex-column gap-3">
@@ -171,17 +185,17 @@
                   <div>
                     <h5 class="fw-bold text-dark mb-1">{{ helper.name }}</h5>
                     <p class="small text-muted mb-1">
-                      {{ helper.mainSkill }} | Seviye {{ helper.skillLevel }} | Aktif Görev {{ helper.activeTaskCount }}
+                      {{ helper.mainSkill }} | Seviye {{ helper.skillLevel }} | Aktif Görevi: {{ helper.activeTaskCount }}
                     </p>
                     <p class="small text-primary fw-bold mb-2">
-                      Uygunluk skoru: {{ helper.totalScore ?? helper.score ?? '-' }}
+                      Uygunluk Skoru: {{ helper.totalScore ?? helper.score ?? '-' }}
                     </p>
                     <ul class="mb-0 small text-muted">
                       <li v-for="(item, index) in helper.reason" :key="index">{{ item }}</li>
                     </ul>
                   </div>
                   <button @click="acceptHelp(helper.id)" class="btn btn-primary fw-bold btn-sm px-3 shadow-sm">
-                    Yardım Ata
+                    Yardım Çağrısı Gönder
                   </button>
                 </div>
               </div>
@@ -192,6 +206,31 @@
             <button type="button" class="btn btn-light fw-bold" @click="closeHelpModal">Kapat</button>
           </div>
           
+        </div>
+      </div>
+    </div>
+
+    <div v-if="reportModalOpen" class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header border-bottom-0 pb-0">
+            <h5 class="modal-title fw-bolder text-dark">📊 Sistem Durum Raporu</h5>
+            <button type="button" class="btn-close" @click="reportModalOpen = false"></button>
+          </div>
+          <div class="modal-body py-4">
+            <div v-if="isGeneratingReport" class="text-center py-4">
+              <div class="spinner-border text-primary mb-3" role="status"></div>
+              <p class="text-muted fw-bold">Yapay zeka veritabanını analiz ediyor...</p>
+            </div>
+            <div v-else>
+              <div class="p-3 bg-light rounded border border-secondary text-dark fst-italic lh-lg">
+                "{{ aiReportText }}"
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-primary fw-bold w-100" @click="reportModalOpen = false">Anlaşıldı</button>
+          </div>
         </div>
       </div>
     </div>
@@ -208,33 +247,53 @@ import { useTaskStore } from '../stores/tasks'
 const auth = useAuthStore()
 const taskStore = useTaskStore()
 
+// State Değişkenleri
 const employees = ref([])
 const newTask = ref({ title: '', requiredSkill: '', difficulty: '', dueAt: '' })
 const selectedEmployeeName = ref('')
+const isGeneratingAI = ref(false)
+
+// Yardım Modalı Değişkenleri
 const helpModalOpen = ref(false)
 const selectedTaskForHelp = ref(null)
 const helpCandidates = ref([])
 const helpLoading = ref(false)
-const isGeneratingAI = ref(false)
+
+// AI Rapor Modalı Değişkenleri
+const reportModalOpen = ref(false)
+const isGeneratingReport = ref(false)
+const aiReportText = ref('')
 
 const tasks = computed(() => taskStore.tasks)
 const overdueCount = computed(() => taskStore.overdueCount)
 
+// GÜÇLENDİRİLDİ: Artık isimden değil, benzersiz ID'den kontrol ediyor
 const isOwner = (task) => {
   if (!auth.user) return false;
-  const userName = auth.user.name;
-  const isAssignee = task.assignees?.some(a => a.name === userName);
-  const isHelper = task.helper?.name === userName;
+  const userId = auth.user.id;
+  const isAssignee = task.assignees?.some(a => a.id === userId);
+  const isHelper = task.helper?.id === userId;
   return isAssignee || isHelper;
 }
 
 const fetchEmployees = async () => {
   try {
     const response = await api.get('/employees')
-    employees.value = response.data
+    // Yönetici kendisine görev atayamasın diye sadece çalışanları listele
+    employees.value = response.data.filter(emp => emp.role !== 'manager')
   } catch (e) {
     console.error(e)
   }
+}
+
+const formatStatus = (status) => {
+  const map = {
+    'open': 'Devam Ediyor',
+    'pending_approval': 'Onay Bekliyor',
+    'completed': 'Tamamlandı',
+    'rejected': 'Reddedildi'
+  }
+  return map[status] || status
 }
 
 const statusBadgeClass = status => {
@@ -242,7 +301,6 @@ const statusBadgeClass = status => {
   if (status === 'completed') return base + 'bg-success text-white border-success'
   if (status === 'pending_approval') return base + 'bg-warning text-dark border-warning'
   if (status === 'rejected') return base + 'bg-danger text-white border-danger'
-  if (status === 'blocked') return base + 'bg-secondary text-white border-secondary'
   return base + 'bg-light text-secondary border-secondary'
 }
 
@@ -253,9 +311,24 @@ const generateDescriptionWithAI = async () => {
     const response = await api.post('/tasks/generate-description', { title: newTask.value.title });
     newTask.value.title = response.data.description;
   } catch (error) {
-    alert('AI hatası oluştu.');
+    console.error('AI açıklaması oluşturulamadı.');
   } finally {
     isGeneratingAI.value = false;
+  }
+}
+
+// YENİ: Yöneticinin Genel Rapor Alması İçin
+const fetchAIReport = async () => {
+  reportModalOpen.value = true
+  isGeneratingReport.value = true
+  aiReportText.value = ''
+  try {
+    const response = await api.get('/tasks/ai-report/general')
+    aiReportText.value = response.data.report
+  } catch (error) {
+    aiReportText.value = 'Rapor oluşturulurken bir bağlantı hatası meydana geldi.'
+  } finally {
+    isGeneratingReport.value = false
   }
 }
 
@@ -267,7 +340,7 @@ const addTask = async () => {
     await taskStore.fetchTasks()
     await fetchEmployees()
   } catch (error) {
-    alert(error.response?.data?.error || 'Görev atanamadı')
+    console.error('Görev atama hatası:', error)
   }
 }
 
@@ -276,9 +349,8 @@ const completeTask = async id => {
     await api.patch(`/tasks/${id}/complete`, {})
     await taskStore.fetchTasks()
     await auth.restoreSession()
-    alert('Görev başarıyla tamamlandı, yönetici onayına gönderildi.')
   } catch (error) {
-    alert(error.response?.data?.error || 'Tamamlama başarısız')
+    console.error('Tamamlama başarısız:', error)
   }
 }
 
@@ -288,23 +360,21 @@ const approveTask = async id => {
     await api.patch(`/tasks/${id}/approve`, { approverName: auth.user.name })
     await taskStore.fetchTasks()
     await auth.restoreSession()
-    alert('Görev onaylandı.')
   } catch (error) {
-    alert(error.response?.data?.error || 'Onay işlemi başarısız')
+    console.error('Onaylama başarısız:', error)
   }
 }
 
 const rejectTask = async id => {
   if (!auth.user) return
-  const reason = prompt('Reddetme nedenini yazın:')
+  const reason = prompt('Reddetme nedenini kısaca yazın (Çalışana bildirilecek):')
   if (!reason) return;
   try {
     await api.patch(`/tasks/${id}/reject`, { approverName: auth.user.name, reason })
     await taskStore.fetchTasks()
     await auth.restoreSession()
-    alert('Görev reddedildi.')
   } catch (error) {
-    alert(error.response?.data?.error || 'Red işlemi başarısız')
+    console.error('Reddetme başarısız:', error)
   }
 }
 
@@ -316,7 +386,7 @@ const openHelpModal = async task => {
     const res = await api.post(`/tasks/${task.id || task._id}/request-help`)
     helpCandidates.value = res.data.recommendedHelpers || []
   } catch (error) {
-    alert('Yardım önerileri şu an alınamıyor.')
+    console.error('Yardım önerileri alınamadı.')
     closeHelpModal()
   } finally {
     helpLoading.value = false
@@ -330,7 +400,7 @@ const acceptHelp = async helperId => {
     await taskStore.fetchTasks()
     await auth.restoreSession()
   } catch (error) {
-    alert('Yardım ataması yapılamadı.')
+    console.error('Yardım ataması yapılamadı.')
   }
 }
 

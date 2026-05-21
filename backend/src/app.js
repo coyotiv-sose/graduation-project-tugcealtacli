@@ -19,7 +19,6 @@ const app = express()
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
-// CORS Ayarı: Her origin'e (frontend linkine) izin veriyoruz
 app.use(cors({
   origin: true, 
   credentials: true
@@ -41,7 +40,7 @@ app.use('/task-activities', taskActivitiesRouter)
 app.createSocketServer = function (server) {
   const io = require('socket.io')(server, {
     cors: {
-      origin: true, // Socket için de kapıları açtık
+      origin: true,
       credentials: true
     }
   })
@@ -51,9 +50,19 @@ app.createSocketServer = function (server) {
   io.on('connection', (socket) => {
     console.log('Yeni bir kullanıcı bağlandı (Socket ID):', socket.id)
 
-    socket.on('join_user_room', (userId) => {
+    // Frontend'den artık hem ID hem de Rol bilgisini alacağız
+    socket.on('join_user_room', (data) => {
+      const userId = data.userId || data;
+      const role = data.role || null;
+
       socket.join(userId)
       console.log(`Kullanıcı ${userId} kendi bildirim odasına katıldı.`)
+
+      // Eğer bağlanan kişi yöneticiyse, onu yöneticiler odasına da ekle
+      if (role === 'manager') {
+        socket.join('managers_room')
+        console.log(`Yönetici ${userId} 'managers_room' odasına katıldı.`)
+      }
     })
 
     socket.on('disconnect', () => {
