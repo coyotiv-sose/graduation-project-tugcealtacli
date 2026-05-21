@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const bcrypt = require('bcryptjs') // YENİ EKLENDİ: Şifreleme için
+const bcrypt = require('bcryptjs')
 const {
   HELPER_SUPPORT_POINTS,
   PEER_HELP_RECEIVED_POINTS,
@@ -12,9 +12,10 @@ const TaskActivity = require('./task-activity')
 
 const employeeSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true, minlength: 2, unique: true }, // unique: true eklendi
-    password: { type: String, required: true }, // YENİ EKLENDİ
-    role: { type: String, enum: ['employee', 'manager'], default: 'employee' }, // YENİ EKLENDİ
+    name: { type: String, required: true, trim: true, minlength: 2 }, // İsim artık benzersiz olmak zorunda değil
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true }, // YENİ: E-posta eklendi ve benzersiz yapıldı
+    password: { type: String, required: true },
+    role: { type: String, enum: ['employee', 'manager'], default: 'employee' },
     mainSkill: { type: String, required: true, trim: true },
     skillLevel: { type: Number, required: true, min: 1, max: 5 },
 
@@ -36,12 +37,10 @@ const employeeSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
-{ timestamps: true }
-
 
 employeeSchema.plugin(autopopulate)
 
-//  Şifreyi veritabanına kaydetmeden önce otomatik olarak şifreler
+// Şifreyi veritabanına kaydetmeden önce otomatik olarak şifreler
 employeeSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
@@ -51,7 +50,6 @@ employeeSchema.pre('save', async function () {
 employeeSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password)
 }
-
 
 employeeSchema.methods.canHandle = function (taskRequirements) {
   if (!taskRequirements || !taskRequirements.requiredSkill) return false

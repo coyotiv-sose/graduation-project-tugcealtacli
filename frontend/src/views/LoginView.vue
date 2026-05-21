@@ -39,12 +39,12 @@
           
           <form v-if="isLoginMode" @submit.prevent="handleLogin" class="d-flex flex-column gap-3">
             <div>
-              <label class="form-label fw-bold text-muted small">Ad Soyad</label>
+              <label class="form-label fw-bold text-muted small">E-posta Adresi</label>
               <input 
-                v-model="loginForm.name" 
-                type="text" 
+                v-model="loginForm.email" 
+                type="email" 
                 class="form-control form-control-lg bg-light" 
-                placeholder="İsminizi girin" 
+                placeholder="ornek@tuvia.com" 
                 required 
               />
             </div>
@@ -73,6 +73,17 @@
                 type="text" 
                 class="form-control bg-light" 
                 placeholder="Örn: Tuğçe" 
+                required 
+              />
+            </div>
+            
+            <div>
+              <label class="form-label fw-bold text-muted small">E-posta Adresi</label>
+              <input 
+                v-model="registerForm.email" 
+                type="email" 
+                class="form-control bg-light" 
+                placeholder="ornek@tuvia.com" 
                 required 
               />
             </div>
@@ -148,12 +159,13 @@ const auth = useAuthStore()
 const isLoginMode = ref(true)
 
 const loginForm = ref({
-  name: '',
+  email: '',
   password: ''
 })
 
 const registerForm = ref({
   name: '',
+  email: '',
   mainSkill: '',
   skillLevel: 1,
   password: '',
@@ -162,7 +174,7 @@ const registerForm = ref({
 
 const handleLogin = async () => {
   try {
-    await auth.login(loginForm.value.name, loginForm.value.password)
+    await auth.login(loginForm.value.email, loginForm.value.password)
     router.push('/')
   } catch (error) {
     alert('Hata Detayı: ' + (error.response?.data?.detail || error.response?.data?.error || 'Giriş başarısız oldu.'))
@@ -171,15 +183,9 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
   try {
-    // 1. Önce kullanıcıyı veritabanına kaydet
     await auth.register(registerForm.value)
-    
-    // 2. Kayıt olan kullanıcının bilgileriyle arka planda otomatik giriş yap
-    await auth.login(registerForm.value.name, registerForm.value.password)
-    
-    // 3. Giriş başarılı olduğunda doğrudan ana sayfaya (panele) yönlendir
+    await auth.login(registerForm.value.email, registerForm.value.password)
     router.push('/')
-    
   } catch (error) {
     alert('Hata Detayı: ' + (error.response?.data?.detail || error.response?.data?.error || 'Kayıt başarısız oldu.'))
   }

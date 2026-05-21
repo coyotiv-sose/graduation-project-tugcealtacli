@@ -7,7 +7,8 @@ function employeeToAuthDto(employee) {
   return {
     id: employee._id.toString(),
     name: employee.name,
-    role: employee.role, // Yönetici mi çalışan mı olduğunu anlamak için
+    email: employee.email,
+    role: employee.role,
     mainSkill: employee.mainSkill,
     skillLevel: employee.skillLevel,
     points: employee.points || 0,
@@ -17,18 +18,18 @@ function employeeToAuthDto(employee) {
 // Şifreli Kayıt Olma (Register) Rotası
 router.post('/register', async (req, res) => {
   try {
-    const { name, password, mainSkill, skillLevel, adminSecret } = req.body
+    const { name, email, password, mainSkill, skillLevel, adminSecret } = req.body
 
-    if (!name || !password || !mainSkill || skillLevel === undefined) {
-      return res.status(400).send({ error: 'İsim, şifre, uzmanlık ve seviye zorunludur.' })
+    if (!name || !email || !password || !mainSkill || skillLevel === undefined) {
+      return res.status(400).send({ error: 'İsim, e-posta, şifre, uzmanlık ve seviye zorunludur.' })
     }
 
-    const existingUser = await Employee.findOne({ name })
+    // Artık isme göre değil, e-postaya göre kontrol ediyoruz
+    const existingUser = await Employee.findOne({ email: String(email).trim().toLowerCase() })
     if (existingUser) {
-      return res.status(400).send({ error: 'Bu isimde bir kullanıcı zaten var.' })
+      return res.status(400).send({ error: 'Bu e-posta adresiyle kayıtlı bir kullanıcı zaten var.' })
     }
 
-    // Eğer gizli yönetici şifresi doğru girilirse rolü 'manager' yap
     let role = 'employee'
     if (adminSecret && adminSecret === process.env.ADMIN_SECRET) {
       role = 'manager'
@@ -36,7 +37,8 @@ router.post('/register', async (req, res) => {
 
     const newEmployee = await Employee.create({
       name: String(name).trim(),
-      password: password, // employee.js'deki pre-save kancası bunu otomatik şifreleyecek
+      email: String(email).trim().toLowerCase(),
+      password: password, 
       role: role,
       mainSkill: String(mainSkill).trim(),
       skillLevel: Number(skillLevel),
@@ -55,24 +57,23 @@ router.post('/register', async (req, res) => {
 // Gerçek Şifre ve Token (JWT) ile Giriş (Login) Rotası
 router.post('/login', async (req, res) => {
   try {
-    const { name, password } = req.body
+    const { email, password } = req.body
 
-    if (!name || !password) {
-      return res.status(400).send({ error: 'İsim ve şifre gereklidir.' })
+    if (!email || !password) {
+      return res.status(400).send({ error: 'E-posta ve şifre gereklidir.' })
     }
 
-    const employee = await Employee.findOne({ name })
+    // E-postayı küçük harfe çevirerek arıyoruz ki büyük/küçük harf hatası olmasın
+    const employee = await Employee.findOne({ email: String(email).trim().toLowerCase() })
     if (!employee) {
-      return res.status(404).send({ error: 'Kullanıcı bulunamadı.' })
+      return res.status(404).send({ error: 'Bu e-posta adresine ait kullanıcı bulunamadı.' })
     }
 
-    // Girilen şifre ile veritabanındaki şifrelenmiş şifreyi karşılaştır
     const isMatch = await employee.comparePassword(password)
     if (!isMatch) {
       return res.status(401).send({ error: 'Hatalı şifre girdiniz.' })
     }
 
-    // Giriş başarılıysa JWT Token oluştur (1 gün geçerli)
     const token = jwt.sign(
       { id: employee._id, role: employee.role },
       process.env.JWT_SECRET || 'tuvia_yedek_gizli_anahtar',
@@ -81,7 +82,7 @@ router.post('/login', async (req, res) => {
 
     res.send({
       message: 'Giriş başarılı.',
-      token, // Token'ı frontend'e gönderiyoruz
+      token,
       user: employeeToAuthDto(employee),
     })
   } catch (error) {
@@ -97,17 +98,15 @@ router.post('/logout', async (req, res) => {
 router.get('/me', async (req, res) => {
   try {
     const authHeader = req.headers['authorization']
-    const legacyId = req.headers['x-employee-id'] // Frontend'i güncelleyene kadar geçici destek
+    const legacyId = req.headers['x-employee-id']
     
     let employeeId = null;
 
-    // Önce yeni güvenli yöntemi (Token) kontrol et
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1]
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tuvia_yedek_gizli_anahtar')
       employeeId = decoded.id
     } 
-    // Token yoksa eski güvensiz yönteme bak (Geçiş aşaması için)
     else if (legacyId) {
       employeeId = legacyId
     }
