@@ -1,6 +1,5 @@
 <template>
   <div class="container py-4">
-    <!-- Üst Başlık -->
     <header class="mb-5 pb-3 border-bottom">
       <h1 class="fw-bolder text-dark mb-2 d-flex align-items-center gap-2">
         <span class="text-warning">⏳</span> Bekleyen Onaylar
@@ -10,13 +9,11 @@
       </p>
     </header>
 
-    <!-- Yükleniyor Durumu -->
     <div v-if="loading" class="text-center py-5 text-muted fw-bold">
       <div class="spinner-border text-primary mb-2" role="status"></div>
       <p>Görevler yükleniyor...</p>
     </div>
 
-    <!-- Boş Durum (Bekleyen onay yoksa) -->
     <div v-else-if="pendingTasks.length === 0" class="card border-0 shadow-sm text-center py-5">
       <div class="card-body">
         <div class="display-4 mb-3">🎉</div>
@@ -25,7 +22,6 @@
       </div>
     </div>
 
-    <!-- Onay Bekleyen Görevler Listesi -->
     <div v-else class="d-flex flex-column gap-4">
       <div 
         v-for="task in pendingTasks" 
@@ -35,7 +31,6 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             
-            <!-- Görev Detayları -->
             <div class="col-md-8 mb-4 mb-md-0">
               <h4 class="fw-bold text-dark mb-3">{{ task.title }}</h4>
               
@@ -54,7 +49,6 @@
               </div>
             </div>
 
-            <!-- Aksiyon Butonları -->
             <div class="col-md-4 text-md-end d-flex flex-column flex-md-row justify-content-md-end gap-2">
               <button 
                 @click="approveTask(task.id)"
@@ -101,18 +95,27 @@ const fetchPendingTasks = async () => {
 }
 
 const approveTask = async (taskId) => {
+  if (!auth.user) {
+    alert('Onay için giriş yapmış kullanıcı gerekli.')
+    return
+  }
   try {
     await api.patch(`/tasks/${taskId}/approve`, { approverName: auth.user.name })
     alert('Görev başarıyla onaylandı! Çalışana puanı eklendi.')
     await fetchPendingTasks() // Listeyi yenile
   } catch (error) {
-    alert(error.response?.data?.error || 'Onaylama işlemi başarısız oldu.')
+    // Backend'den dönen gerçek hatayı gösterir
+    alert('Hata Detayı: ' + (error.response?.data?.detail || error.response?.data?.error || 'Onaylama işlemi başarısız oldu.'))
   }
 }
 
 const rejectTask = async (taskId) => {
+  if (!auth.user) {
+    alert('Red için giriş yapmış kullanıcı gerekli.')
+    return
+  }
   const reason = prompt('Reddetme sebebini yazınız (Çalışan bunu görecektir):')
-  if (reason === null) return // İptale basarsa işlemi durdur
+  if (!reason) return // İptale basarsa işlemi durdur
 
   try {
     await api.patch(`/tasks/${taskId}/reject`, { 
@@ -122,17 +125,19 @@ const rejectTask = async (taskId) => {
     alert('Görev reddedildi ve çalışana geri gönderildi.')
     await fetchPendingTasks() // Listeyi yenile
   } catch (error) {
-    alert(error.response?.data?.error || 'Reddetme işlemi başarısız oldu.')
+    // Backend'den dönen gerçek hatayı gösterir
+    alert('Hata Detayı: ' + (error.response?.data?.detail || error.response?.data?.error || 'Reddetme işlemi başarısız oldu.'))
   }
 }
 
-onMounted(() => {
-  fetchPendingTasks()
+onMounted(async () => {
+  // SAYFA YENİLENDİĞİNDE ÖNCE YÖNETİCİ KİMLİĞİNİ DOĞRULA!
+  await auth.restoreSession()
+  await fetchPendingTasks()
 })
 </script>
 
 <style scoped>
-/* Kartlara gelince Bootstrap'e uygun hafif yukarı kalkma efekti */
 .transition-all {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
