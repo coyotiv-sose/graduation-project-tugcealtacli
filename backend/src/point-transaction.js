@@ -15,7 +15,8 @@ const pointTransactionSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['task_completion', 'help_bonus', 'manual'],
+      // İŞTE HATAYI ÇÖZEN EKLEME BURADA:
+      enum: ['task_completion', 'help_bonus', 'manual', 'task_approved'],
       required: true,
     },
     points: {
